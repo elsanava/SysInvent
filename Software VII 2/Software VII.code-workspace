@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../Software VI"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "Software VII"
+	}
+}
