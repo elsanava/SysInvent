@@ -1,3 +1,5 @@
+const API_URL = "http://localhost:4000/api";
+
 // Variables globales
 let currentUser = null;
 let products = JSON.parse(localStorage.getItem('products')) || [];
