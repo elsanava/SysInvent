@@ -48,7 +48,7 @@ CREATE TABLE productos (
     subcategoria VARCHAR(100),
     descripcion TEXT,
     precio DECIMAL(10,2) NOT NULL,
-    costo DECIMAL(10,2) NOT NULL,
+    costo DECIMAL(10,2) NOT NULsisinventL,
     unidad_medida VARCHAR(50) NOT NULL,
     stock_actual INT DEFAULT 0,
     stock_minimo INT NOT NULL,

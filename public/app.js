@@ -1,7 +1,14 @@
-const API_URL = "http://localhost:4000/api";
+// ===============================
+// VARIABLES GLOBALES
+// ===============================
 
-// Variables globales
+// URL base del backend
+/*const API_URL = "http://localhost:4000/api";
+
+// Usuario actual
 let currentUser = null;
+
+// Datos persistentes en localStorage
 let products = JSON.parse(localStorage.getItem('products')) || [];
 let inventoryProducts = JSON.parse(localStorage.getItem('inventoryProducts')) || [];
 let customers = JSON.parse(localStorage.getItem('customers')) || [];
@@ -11,14 +18,686 @@ let inventoryMovements = JSON.parse(localStorage.getItem('inventoryMovements')) 
 let invoices = JSON.parse(localStorage.getItem('invoices')) || [];
 let purchaseOrders = JSON.parse(localStorage.getItem('purchaseOrders')) || [];
 let salesOrders = JSON.parse(localStorage.getItem('salesOrders')) || [];
-let warehouses = JSON.parse(localStorage.getItem('warehouses')) || [];
+let warehouses = JSON.parse(localStorage.getItem('warehouses')) || [];*/
+
+// ===============================
+// FUNCIONES DE UTILIDAD
+// ===============================
+/*function showAlert(message, type) {
+    // Crear alerta Bootstrap
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insertar en el body
+    document.body.appendChild(alertDiv);
+    
+    // Auto-eliminar después de 5 segundos
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
+}*/
+
+
+// ===============================
+// Mostrar la pantalla de login
+// ===============================
+/*function showLoginScreen() {
+  const loginScreen = document.getElementById('loginScreen');
+  const appScreen = document.getElementById('appScreen');
+
+  if (loginScreen && appScreen) {
+    loginScreen.style.display = 'flex';
+    appScreen.style.display = 'none';
+  }
+
+  // Limpiar formularios (por si el usuario vuelve a login)
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  if (loginForm) loginForm.reset();
+  if (registerForm) registerForm.reset();
+}*/
+
+/*function showAppScreen() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+
+  // Actualizar información del usuario
+  if (currentUser) {
+    // El backend devuelve 'nombre' y 'rol', no 'name' ni 'role'
+    const nombre = currentUser.nombre || currentUser.name;
+    const rol = currentUser.rol || currentUser.role;
+
+    document.getElementById('userNameDisplay').textContent = nombre;
+    document.getElementById('userInitial').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('profileUserName').textContent = nombre;
+    document.getElementById('profileUserInitial').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('profileUserRole').textContent = rol;
+  }
+}*/
+
+
+// ===============================
+// LOGIN - conexión con el backend
+// ===============================
+/*async function handleLogin(e) {
+  e.preventDefault();
+
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value.trim();
+
+  if (!email || !password) {
+    showAlert('Por favor, complete todos los campos.', 'danger');
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      currentUser = data.user;
+      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+
+      showAppScreen();
+      // updateDashboard();
+      setTimeout(() => {
+    updateDashboard();
+  }, 500);
+
+      showAlert(`Bienvenido, ${currentUser.nombre}`, "success");
+    } else {
+      showAlert(data.message || "Credenciales incorrectas.", "danger");
+    }
+  } catch (error) {
+    console.error("Error en login:", error);
+    showAlert("Error al conectar con el servidor.", "danger");
+  }
+}*/
+
+
+/*function quickDemoLogin() {
+  document.getElementById('loginEmail').value = 'admin@sysinvent.com';
+  document.getElementById('loginPassword').value = 'admin123';
+  const loginForm = document.getElementById('loginForm');
+  const submitEvent = new Event('submit', { cancelable: true });
+  loginForm.dispatchEvent(submitEvent);
+}*/
+
+
+// ===============================
+// REGISTRO - conexión con el backend
+// ===============================
+/*async function handleRegister(e) {
+  e.preventDefault();
+
+  const name = document.getElementById('registerName').value.trim();
+  const email = document.getElementById('registerEmail').value.trim();
+  const password = document.getElementById('registerPassword').value.trim();
+  const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
+
+  // Validaciones básicas
+  if (!name || !email || !password || !confirmPassword) {
+    showAlert('Por favor, complete todos los campos.', 'danger');
+    return;
+  }
+
+  if (password.length < 6) {
+    showAlert('La contraseña debe tener al menos 6 caracteres.', 'warning');
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    showAlert('Las contraseñas no coinciden.', 'warning');
+    return;
+  }
+
+  try {
+    // Enviar los datos al backend
+    const response = await fetch("/api/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      showAlert("Usuario registrado exitosamente. Ahora puede iniciar sesión.", "success");
+
+      // 🔄 Cambiar automáticamente a la pestaña de login
+      const loginTab = document.getElementById("login-tab");
+      if (loginTab) loginTab.click();
+
+      // 🧹 Limpiar formulario
+      document.getElementById("registerForm").reset();
+    } else {
+      showAlert(data.message || "Error al registrar el usuario.", "danger");
+    }
+  } catch (error) {
+    console.error("Error en registro:", error);
+    showAlert("Error al conectar con el servidor.", "danger");
+  }
+}*/
+
+
+/*function handleLogout() {
+  currentUser = null;
+  localStorage.removeItem('currentUser');
+  showLoginScreen();
+  showAlert('Sesión cerrada correctamente.', 'info');
+}*/
+
+
+// ===============================
+// CLIENTES
+// ===============================
+/*function loadCustomersTable() {
+    const tableBody = document.getElementById('customersTableBody');
+    if (!tableBody) return;
+    
+    tableBody.innerHTML = '';
+    
+    if (customers.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay clientes registrados</td></tr>';
+        return;
+    }
+    
+    customers.forEach(customer => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${customer.id}</td>
+            <td>${customer.name}</td>
+            <td>${customer.email}</td>
+            <td>${customer.phone}</td>
+            <td>${customer.address}</td>
+            <td>${customer.type}</td>
+            <td class="action-buttons">
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editCustomer(${customer.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer(${customer.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}*/
+
+
+/*function saveCustomer() {
+    const customerId = document.getElementById('customerId').value;
+    const name = document.getElementById('customerName').value;
+    const email = document.getElementById('customerEmail').value;
+    const phone = document.getElementById('customerPhone').value;
+    const type = document.getElementById('customerType').value;
+    const address = document.getElementById('customerAddress').value;
+    
+    // Validaciones
+    if (!name || !email || !phone || !type) {
+        showAlert('Por favor, complete todos los campos obligatorios.', 'warning');
+        return;
+    }
+    
+    // Validar email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        showAlert('Por favor, ingrese un email válido.', 'warning');
+        return;
+    }
+    
+    if (customerId) {
+        // Editar cliente existente
+        const index = customers.findIndex(c => c.id == customerId);
+        if (index !== -1) {
+            customers[index] = { ...customers[index], name, email, phone, type, address };
+            showAlert('Cliente actualizado correctamente.', 'success');
+        }
+    } else {
+        // Verificar si el email ya existe
+        if (customers.find(c => c.email === email)) {
+            showAlert('Ya existe un cliente con este email.', 'warning');
+            return;
+        }
+        
+        // Crear nuevo cliente
+        const newCustomer = {
+            id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1,
+            name, email, phone, type, address
+        };
+        customers.push(newCustomer);
+        showAlert('Cliente creado correctamente.', 'success');
+    }
+    
+    localStorage.setItem('customers', JSON.stringify(customers));
+    
+    // Cerrar modal y actualizar tabla
+    const modal = bootstrap.Modal.getInstance(document.getElementById('customerModal'));
+    if (modal) modal.hide();
+    
+    loadCustomersTable();
+    
+    // Limpiar formulario
+    document.getElementById('customerForm').reset();
+    document.getElementById('customerId').value = '';
+}
+*/
+
+/*function editCustomer(id) {
+    const customer = customers.find(c => c.id === id);
+    if (!customer) return;
+    
+    document.getElementById('customerId').value = customer.id;
+    document.getElementById('customerName').value = customer.name;
+    document.getElementById('customerEmail').value = customer.email;
+    document.getElementById('customerPhone').value = customer.phone;
+    document.getElementById('customerType').value = customer.type;
+    document.getElementById('customerAddress').value = customer.address || '';
+    
+    document.getElementById('customerModalTitle').textContent = 'Editar Cliente';
+    
+    const modal = new bootstrap.Modal(document.getElementById('customerModal'));
+    modal.show();
+}*/
+
+
+/*function deleteCustomer(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
+    
+    // Verificar si el cliente está en uso en facturas
+    const customerInUse = invoices.some(invoice => invoice.clientId === id);
+    
+    if (customerInUse) {
+        showAlert('No se puede eliminar el cliente porque está asociado a facturas.', 'warning');
+        return;
+    }
+    
+    customers = customers.filter(c => c.id !== id);
+    localStorage.setItem('customers', JSON.stringify(customers));
+    loadCustomersTable();
+    showAlert('Cliente eliminado correctamente.', 'success');
+}*/
+
+
+// ===============================
+// PRODUCTOS
+// ===============================
+/*async function loadCategoriasUnidadesAlmacen() {
+  try {
+    const [catRes, uniRes, almaRes] = await Promise.all([
+      fetch('/api/categorias'),
+      fetch('/api/unidades'),
+      fetch('/api/almacen')
+    ]);
+
+    const categorias = await catRes.json();
+    const unidades = await uniRes.json();
+    const almacen = await almaRes.json();
+
+    const categorySelect = document.getElementById('productCategory');
+    const unitSelect = document.getElementById('productUnit');
+    const warehouseSelect = document.getElementById('productWarehouse');
+
+    // Reiniciar opciones
+    categorySelect.innerHTML = '<option value="">Seleccionar categoría</option>';
+    unitSelect.innerHTML = '<option value="">Seleccionar unidad</option>';
+    warehouseSelect.innerHTML = '<option value="">Seleccionar almacén</option>';
+
+    // Cargar categorías
+    if (Array.isArray(categorias)) {
+      categorias.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = c.nombre;
+        categorySelect.appendChild(opt);
+      });
+    }
+
+    // Cargar unidades
+    if (Array.isArray(unidades)) {
+      unidades.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.id;
+        opt.textContent = u.nombre;
+        unitSelect.appendChild(opt);
+      });
+    }
+
+    // Cargar almacenes
+    if (Array.isArray(almacen)) {
+      almacen.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        opt.textContent = a.nombre;
+        warehouseSelect.appendChild(opt);
+      });
+    }
+
+  } catch (err) {
+    console.error('Error al cargar categorías, unidades o almacén:', err);
+  }
+}*/
+
+
+// ===============================
+// GUARDAR O EDITAR PRODUCTO
+// ===============================
+/*async function saveProduct() {
+  const productId = document.getElementById('productId').value;
+  const code = document.getElementById('productCode').value.trim();
+  const name = document.getElementById('productName').value.trim();
+  const category = document.getElementById('productCategory').value;
+  const subcategory = document.getElementById('productSubcategory').value.trim();
+  const price = parseFloat(document.getElementById('productPrice').value);
+  const cost = parseFloat(document.getElementById('productCost').value);
+  const unit = document.getElementById('productUnit').value;
+  const minStock = parseInt(document.getElementById('productMinStock').value);
+  const maxStock = parseInt(document.getElementById('productMaxStock').value);
+  const warehouseId = parseInt(document.getElementById('productWarehouse').value);
+  const description = document.getElementById('productDescription').value.trim();
+
+  // Validaciones básicas
+  if (!name || !category || !unit || !subcategory || isNaN(price) || isNaN(cost) || isNaN(minStock) || isNaN(maxStock) || !warehouseId) {
+    showAlert('⚠️ Por favor, completa todos los campos obligatorios.', 'warning');
+    return;
+  }
+
+  if (minStock >= maxStock) {
+    showAlert('⚠️ El stock mínimo debe ser menor al stock máximo.', 'warning');
+    return;
+  }
+
+  // Objeto que se enviará al backend
+  const producto = {
+    codigo: code,
+    nombre: name,
+    categoria_id: parseInt(category),
+    subcategoria,
+    descripcion: description,
+    precio: price,
+    costo: cost,
+    unidad_id: parseInt(unit),
+    stock_minimo: minStock,
+    stock_maximo: maxStock,
+    almacen_id: warehouseId,
+  };
+
+  try {
+    let res;
+    if (productId) {
+      // Editar producto existente
+      res = await fetch(`/api/productos/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(producto),
+      });
+    } else {
+      // Crear producto nuevo
+      res = await fetch('/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(producto),
+      });
+    }
+
+    const data = await res.json();
+
+    if (res.ok) {
+      showAlert(productId ? 'Producto actualizado correctamente.' : 'Producto agregado correctamente.', 'success');
+
+      // Cerrar el modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
+      if (modal) modal.hide();
+
+      // Limpiar formulario
+      document.getElementById('productForm').reset();
+      document.getElementById('productId').value = '';
+
+      // Actualizar tabla y dashboard
+      if (typeof loadProductsTable === 'function') loadProductsTable();
+      if (typeof updateDashboard === 'function') updateDashboard();
+    } else {
+      showAlert(data.message || 'Error al guardar el producto.', 'danger');
+    }
+  } catch (error) {
+    console.error('Error al guardar producto:', error);
+    showAlert('❌ Error al conectar con el servidor.', 'danger');
+  }
+}*/
+
+
+/*function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+    
+    document.getElementById('productId').value = product.id;
+    document.getElementById('productCode').value = product.code;
+    document.getElementById('productName').value = product.name;
+    document.getElementById('productCategory').value = product.category;
+    document.getElementById('productSubcategory').value = product.subcategory;
+    document.getElementById('productPrice').value = product.price;
+    document.getElementById('productCost').value = product.cost;
+    document.getElementById('productUnit').value = product.unit;
+    document.getElementById('productStock').value = product.stock;
+    document.getElementById('productMinStock').value = product.minStock;
+    document.getElementById('productMaxStock').value = product.maxStock;
+    document.getElementById('productWarehouse').value = product.warehouseId || '';
+    document.getElementById('productDescription').value = product.description || '';
+    
+    document.getElementById('productModalTitle').textContent = 'Editar Producto';
+    
+    const modal = new bootstrap.Modal(document.getElementById('productModal'));
+    modal.show();
+}*/
+
+
+/*function deleteProduct(id) {
+    if (!confirm('¿Está seguro de que desea eliminar este producto?')) return;
+    
+    // Verificar si el producto está en uso en facturas
+    const productInUse = invoices.some(invoice => 
+        invoice.items.some(item => item.productId === id)
+    );
+    
+    if (productInUse) {
+        showAlert('No se puede eliminar el producto porque está asociado a facturas.', 'warning');
+        return;
+    }
+    
+    // Eliminar de productos gestionados
+    products = products.filter(p => p.id !== id);
+    
+    // Eliminar de inventario también
+    inventoryProducts = inventoryProducts.filter(p => p.id !== id);
+    
+    // Eliminar movimientos de inventario relacionados
+    inventoryMovements = inventoryMovements.filter(m => m.productId !== id);
+    
+    localStorage.setItem('products', JSON.stringify(products));
+    localStorage.setItem('inventoryProducts', JSON.stringify(inventoryProducts));
+    localStorage.setItem('inventoryMovements', JSON.stringify(inventoryMovements));
+    
+    loadProductsTable();
+    loadInventoryTable();
+    updateDashboard();
+    showAlert('Producto eliminado correctamente.', 'success');
+}*/
+
+
+    /*function updateProductStock(productId, quantityChange, movementType, reason, notes = '') {
+        const productIndex = inventoryProducts.findIndex(p => p.id === productId);
+        
+        if (productIndex === -1) {
+            console.error(`Producto con ID ${productId} no encontrado`);
+            return false;
+        }
+        
+        const product = inventoryProducts[productIndex];
+        const oldStock = product.stock;
+        
+        // Actualizar stock del producto
+        if (movementType === 'entry') {
+            product.stock += quantityChange;
+        } else if (movementType === 'exit') {
+            // Validar que haya suficiente stock
+            if (product.stock < quantityChange) {
+                console.error(`Stock insuficiente para el producto: ${product.name}`);
+                return false;
+            }
+            product.stock -= quantityChange;
+        }
+        
+        // Registrar movimiento de inventario
+        const newMovement = {
+            id: inventoryMovements.length > 0 ? Math.max(...inventoryMovements.map(m => m.id)) + 1 : 1,
+            productId,
+            type: movementType,
+            quantity: quantityChange,
+            date: new Date().toISOString().split('T')[0],
+            reason,
+            notes,
+            user: currentUser.name,
+            oldStock,
+            newStock: product.stock
+        };
+        
+        inventoryMovements.push(newMovement);
+        
+        // Actualizar estado del producto basado en el nuevo stock
+        updateProductStatus(product);
+        
+        // Guardar cambios
+        localStorage.setItem('inventoryProducts', JSON.stringify(inventoryProducts));
+        localStorage.setItem('inventoryMovements', JSON.stringify(inventoryMovements));
+        
+        console.log(`Stock actualizado: ${product.name} - ${oldStock} → ${product.stock}`);
+        return true;
+    }*/
+
+
+/*function updateKPIs() {
+    // Calcular margen bruto
+    const totalCost = inventoryProducts.reduce((sum, product) => sum + (product.stock * product.cost), 0);
+    const totalValue = inventoryProducts.reduce((sum, product) => sum + (product.stock * product.price), 0);
+    const grossMargin = totalValue > 0 ? ((totalValue - totalCost) / totalValue * 100).toFixed(1) : 0;
+    
+    document.getElementById('grossMargin').textContent = `${grossMargin}%`;
+    
+    // Calcular rotación de inventario (simplificado)
+    const totalSales = invoices.filter(invoice => invoice.status === "Vendida" && invoice.orderType === "sales").reduce((sum, invoice) => sum + invoice.total, 0);
+    const avgInventory = totalValue / 2; // Simplificación
+    const inventoryTurnover = avgInventory > 0 ? (totalSales / avgInventory).toFixed(1) : 0;
+    
+    document.getElementById('inventoryTurnover').textContent = inventoryTurnover;
+    
+    // Calcular tasa de venta
+    const totalStock = inventoryProducts.reduce((sum, product) => sum + product.stock, 0);
+    const totalSold = invoices.filter(invoice => invoice.status === "Vendida" && invoice.orderType === "sales").reduce((sum, invoice) => {
+        return sum + invoice.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
+    }, 0);
+    const sellThrough = totalStock > 0 ? (totalSold / (totalStock + totalSold) * 100).toFixed(1) : 0;
+    
+    document.getElementById('sellThrough').textContent = `${sellThrough}%`;
+    
+    // Calcular tasa de ruptura de stock
+    const outOfStockProducts = inventoryProducts.filter(p => p.stock === 0).length;
+    const stockoutRate = inventoryProducts.length > 0 ? (outOfStockProducts / inventoryProducts.length * 100).toFixed(1) : 0;
+    
+    document.getElementById('stockoutRate').textContent = `${stockoutRate}%`;
+}*/
+
+/*function updateCategoryChart() {
+    const ctx = document.getElementById('categoryChart');
+    if (!ctx) return;
+    
+    // Agrupar productos por categoría
+    const categories = {};
+    inventoryProducts.forEach(product => {
+        if (!categories[product.category]) {
+            categories[product.category] = 0;
+        }
+        categories[product.category] += product.stock * product.price;
+    });
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(categories),
+            datasets: [{
+                data: Object.values(categories),
+                backgroundColor: ['#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#e74c3c', '#1abc9c']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}*/
+
+/*function updateInventoryTurnoverChart() {
+    const ctx = document.getElementById('inventoryTurnoverChart');
+    if (!ctx) return;
+    
+    // Calcular rotación mensual
+    const monthlyTurnover = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    
+    invoices.filter(invoice => invoice.status === "Vendida" && invoice.orderType === "sales").forEach(invoice => {
+        const invoiceDate = new Date(invoice.date);
+        const month = invoiceDate.getMonth();
+        
+        // Calcular valor de inventario promedio para el mes (simplificado)
+        const avgInventory = inventoryProducts.reduce((sum, product) => sum + (product.stock * product.cost), 0) / 2;
+        
+        if (avgInventory > 0) {
+            monthlyTurnover[month] += invoice.total / avgInventory;
+        }
+    });
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+            datasets: [{
+                label: 'Rotación de Inventario',
+                data: monthlyTurnover,
+                backgroundColor: '#3498db'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}*/
+
+
 
 // Inicialización cuando el DOM está listo
-document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar datos de ejemplo si no existen
-    initializeSampleData();
-    
-    // Verificar si hay un usuario logueado
+/*document.addEventListener('DOMContentLoaded', function() {
     const savedUser = localStorage.getItem('currentUser');
     if (savedUser) {
         try {
@@ -32,339 +711,60 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         showLoginScreen();
     }
-    
-    // Configurar event listeners
+
     setupEventListeners();
-    
-    // Actualizar dashboard si estamos en la app
+
     if (currentUser) {
         updateDashboard();
     }
-});
 
-// Función para inicializar datos de ejemplo
-function initializeSampleData() {
-    // Solo crear datos de ejemplo si no hay datos existentes
-    if (users.length === 0) {
-        const adminUser = {
-            id: 1,
-            name: "Administrador",
-            email: "admin@sysinvent.com",
-            password: "admin123",
-            role: "Administrador",
-            status: "Activo",
-            lastAccess: new Date().toISOString(),
-            createdAt: new Date().toISOString()
-        };
-        users.push(adminUser);
-        localStorage.setItem('users', JSON.stringify(users));
-    }
-    
-    if (warehouses.length === 0) {
-        const defaultWarehouse = {
-            id: 1,
-            name: "Almacén Principal",
-            location: "Sede Central",
-            capacity: 1000,
-            products: 0,
-            manager: "Administrador",
-            description: "Almacén principal del sistema"
-        };
-        warehouses.push(defaultWarehouse);
-        localStorage.setItem('warehouses', JSON.stringify(warehouses));
-    }
-    
-    if (products.length === 0) {
-        const sampleProducts = [
-            {
-                id: 1,
-                code: "PROD001",
-                name: "Laptop Dell XPS 13",
-                category: "Computadoras",
-                subcategory: "Laptops",
-                price: 1500,
-                cost: 1200,
-                unit: "Pieza",
-                stock: 10,
-                minStock: 2,
-                maxStock: 20,
-                warehouseId: 1,
-                description: "Laptop Dell XPS 13 con procesador Intel i7, 16GB RAM, 512GB SSD",
-                status: "Disponible",
-                managed: true
-            },
-            {
-                id: 2,
-                code: "PROD002",
-                name: "iPhone 14 Pro",
-                category: "Teléfonos",
-                subcategory: "Smartphones",
-                price: 1100,
-                cost: 900,
-                unit: "Pieza",
-                stock: 5,
-                minStock: 3,
-                maxStock: 15,
-                warehouseId: 1,
-                description: "iPhone 14 Pro 128GB, color negro espacial",
-                status: "Stock Bajo",
-                managed: true
-            },
-            {
-                id: 3,
-                code: "PROD003",
-                name: "Samsung Galaxy S23",
-                category: "Teléfonos",
-                subcategory: "Smartphones",
-                price: 900,
-                cost: 700,
-                unit: "Pieza",
-                stock: 15,
-                minStock: 5,
-                maxStock: 30,
-                warehouseId: 1,
-                description: "Samsung Galaxy S23 256GB, color verde",
-                status: "Disponible",
-                managed: true
-            }
-        ];
-        products = sampleProducts;
-        localStorage.setItem('products', JSON.stringify(products));
-        
-        // Inicializar también inventoryProducts con los mismos productos
-        inventoryProducts = [...sampleProducts];
-        localStorage.setItem('inventoryProducts', JSON.stringify(inventoryProducts));
-    }
-    
-    if (customers.length === 0) {
-        const sampleCustomers = [
-            {
-                id: 1,
-                name: "Juan Pérez",
-                email: "juan@example.com",
-                phone: "123456789",
-                type: "Minorista",
-                address: "Calle Principal 123"
-            },
-            {
-                id: 2,
-                name: "María García",
-                email: "maria@example.com",
-                phone: "987654321",
-                type: "Mayorista",
-                address: "Avenida Central 456"
-            }
-        ];
-        customers = sampleCustomers;
-        localStorage.setItem('customers', JSON.stringify(customers));
-    }
-    
-    if (suppliers.length === 0) {
-        const sampleSuppliers = [
-            {
-                id: 1,
-                name: "TecnoSuministros S.A.",
-                email: "ventas@tecnosuministros.com",
-                phone: "555-1234",
-                products: "Computadoras, Laptops, Accesorios",
-                address: "Zona Industrial Norte"
-            },
-            {
-                id: 2,
-                name: "Distribuidora de Celulares",
-                email: "info@celularesdist.com",
-                phone: "555-5678",
-                products: "Smartphones, Tablets",
-                address: "Centro Comercial Plaza"
-            }
-        ];
-        suppliers = sampleSuppliers;
-        localStorage.setItem('suppliers', JSON.stringify(suppliers));
-    }
-    
-    if (purchaseOrders.length === 0) {
-        const samplePurchaseOrders = [
-            {
-                id: 1,
-                supplierId: 1,
-                date: new Date().toISOString().split('T')[0],
-                items: [
-                    { productId: 1, quantity: 2, price: 1200 },
-                    { productId: 3, quantity: 5, price: 700 }
-                ],
-                subtotal: 5900,
-                tax: 944,
-                total: 6844,
-                status: "Pendiente",
-                notes: "Orden de compra de ejemplo",
-                invoiceId: null
-            }
-        ];
-        purchaseOrders = samplePurchaseOrders;
-        localStorage.setItem('purchaseOrders', JSON.stringify(purchaseOrders));
-    }
-    
-    if (salesOrders.length === 0) {
-        const sampleSalesOrders = [
-            {
-                id: 1,
-                clientId: 2,
-                date: new Date().toISOString().split('T')[0],
-                items: [
-                    { productId: 2, quantity: 2, price: 1100 },
-                    { productId: 3, quantity: 3, price: 900 }
-                ],
-                subtotal: 4900,
-                tax: 784,
-                total: 5684,
-                status: "Pendiente",
-                notes: "Orden de venta de ejemplo",
-                invoiceId: null
-            }
-        ];
-        salesOrders = sampleSalesOrders;
-        localStorage.setItem('salesOrders', JSON.stringify(salesOrders));
-    }
-    
-    // Generar facturas automáticamente para las órdenes existentes
-    generateInvoicesFromOrders();
-    
-    // Verificar y actualizar Kardex para órdenes existentes
-    checkAndUpdateKardexForExistingOrders();
-}
+});*/
 
-// Función para generar facturas automáticamente desde órdenes
-function generateInvoicesFromOrders() {
-    // Para órdenes de compra
-    purchaseOrders.forEach(order => {
-        if (!order.invoiceId) {
-            const invoice = generateInvoiceFromPurchaseOrder(order);
-            if (invoice) {
-                order.invoiceId = invoice.id;
-            }
-        }
-    });
-    
-    // Para órdenes de venta
-    salesOrders.forEach(order => {
-        if (!order.invoiceId) {
-            const invoice = generateInvoiceFromSalesOrder(order);
-            if (invoice) {
-                order.invoiceId = invoice.id;
-            }
-        }
-    });
-    
-    localStorage.setItem('purchaseOrders', JSON.stringify(purchaseOrders));
-    localStorage.setItem('salesOrders', JSON.stringify(salesOrders));
-    localStorage.setItem('invoices', JSON.stringify(invoices));
-}
+// ===============================
+// APERTURA DEL MODAL DE PRODUCTO
+// ===============================
+/*const productModal = document.getElementById('productModal');
+if (productModal) {
+  productModal.addEventListener('show.bs.modal', async () => {
+    const form = document.getElementById('productForm');
+    const codeInput = document.getElementById('productCode');
+    const subcategoryInput = document.getElementById('productSubcategory');
 
-// Función para actualizar el Kardex automáticamente desde órdenes y facturas
-function updateKardexAutomatically(order, orderType) {
-    const validStatuses = orderType === 'purchase' ? ["Recibida"] : ["Vendida"];
-    
-    // Solo procesar si el estado es válido
-    if (!validStatuses.includes(order.status)) {
-        return;
-    }
-    
-    // Verificar si ya existe un registro en el Kardex para esta orden
-    const existingKardexEntry = inventoryMovements.find(movement => 
-        movement.orderId === order.id && movement.orderType === orderType
-    );
-    
-    if (existingKardexEntry) {
-        console.log(`Ya existe un registro en Kardex para la ${orderType} #${order.id}`);
-        return;
-    }
-    
-    // Procesar cada item de la orden
-    order.items.forEach(item => {
-        const product = inventoryProducts.find(p => p.id === item.productId);
-        if (!product) {
-            console.error(`Producto con ID ${item.productId} no encontrado para la orden ${order.id}`);
-            return;
-        }
-        
-        // Determinar el tipo de movimiento basado en el tipo de orden
-        const movementType = orderType === 'purchase' ? 'entry' : 'exit';
-        const reason = orderType === 'purchase' ? 
-            `Compra - Orden #${order.id}` : 
-            `Venta - Orden #${order.id}`;
-        
-        // Registrar el movimiento en el Kardex
-        const newMovement = {
-            id: inventoryMovements.length > 0 ? Math.max(...inventoryMovements.map(m => m.id)) + 1 : 1,
-            productId: item.productId,
-            type: movementType,
-            quantity: item.quantity,
-            date: order.date,
-            reason: reason,
-            user: currentUser.name,
-            orderId: order.id,
-            orderType: orderType,
-            oldStock: product.stock,
-            newStock: movementType === 'entry' ? 
-                product.stock + item.quantity : 
-                product.stock - item.quantity
-        };
-        
-        inventoryMovements.push(newMovement);
-        
-        // Actualizar el stock del producto
-        if (movementType === 'entry') {
-            product.stock += item.quantity;
-        } else {
-            // Verificar stock suficiente antes de restar
-            if (product.stock < item.quantity) {
-                console.error(`Stock insuficiente para ${product.name}: ${product.stock} disponible, ${item.quantity} requerido`);
-                return;
-            }
-            product.stock -= item.quantity;
-        }
-        
-        // Actualizar estado del producto
-        updateProductStatus(product);
-        
-        console.log(`Registro agregado al Kardex: ${product.name} - ${movementType} - ${item.quantity}`);
-    });
-    
-    // Guardar cambios
-    localStorage.setItem('inventoryMovements', JSON.stringify(inventoryMovements));
-    localStorage.setItem('inventoryProducts', JSON.stringify(inventoryProducts));
-    
-    // Actualizar vistas
-    loadInventoryTable();
-    updateDashboard();
-}
+    // Limpiar formulario y productId
+    if (form) form.reset();
+    document.getElementById('productId').value = '';
 
-// Función para actualizar el estado del producto basado en el stock
-function updateProductStatus(product) {
-    if (product.stock === 0) {
-        product.status = 'Agotado';
-    } else if (product.stock <= product.minStock) {
-        product.status = 'Stock Bajo';
-    } else {
-        product.status = 'Disponible';
-    }
-}
+    // Limpiar subcategoría
+    if (subcategoryInput) subcategoryInput.value = '';
 
-// Función para verificar y actualizar Kardex para órdenes existentes
-function checkAndUpdateKardexForExistingOrders() {
-    // Procesar órdenes de compra
-    purchaseOrders.forEach(order => {
-        updateKardexAutomatically(order, 'purchase');
+    // Resetear selects a opción por defecto
+    ['productCategory', 'productUnit', 'productWarehouse'].forEach(id => {
+      const select = document.getElementById(id);
+      if (select) select.selectedIndex = 0;
     });
-    
-    // Procesar órdenes de venta
-    salesOrders.forEach(order => {
-        updateKardexAutomatically(order, 'sales');
-    });
-}
+
+    // Generar código automático
+    try {
+      const res = await fetch('/api/productos/next-code');
+      const data = await res.json();
+      codeInput.value = data.nextCode || '';
+    } catch (err) {
+      console.error('Error al obtener código:', err);
+      codeInput.value = 'Error';
+    }
+
+    // Cargar categorías, unidades y almacén
+    await loadCategoriasUnidadesAlmacen();
+  });
+}*/
+
+
+// Llamar a la función al cargar la página
+//document.addEventListener('DOMContentLoaded', loadCategoriasUnidadesAlmacen);
+
 
 // Función para configurar event listeners
-function setupEventListeners() {
+/*function setupEventListeners() {
     // Login y registro
     document.getElementById('loginForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -375,7 +775,7 @@ function setupEventListeners() {
         e.preventDefault();
         handleRegister(e);
     });
-    
+
     document.getElementById('logoutBtn').addEventListener('click', handleLogout);
     document.getElementById('logoutBtnTop').addEventListener('click', handleLogout);
     document.getElementById('quickDemoLogin').addEventListener('click', quickDemoLogin);
@@ -491,164 +891,75 @@ function setupEventListeners() {
             }
         }
     });
-    
     // Configurar event listeners para el análisis de ventas
     setupSalesAnalysisListeners();
-}
+}*/
 
-// Funciones de autenticación
-function handleLogin(e) {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    
-    // Validar campos
-    if (!email || !password) {
-        showAlert('Por favor, complete todos los campos.', 'danger');
-        return;
-    }
-    
-    // Buscar usuario
-    const user = users.find(u => u.email === email && u.password === password);
-    
-    if (user) {
-        if (user.status !== 'Activo') {
-            showAlert('Su cuenta está inactiva. Contacte al administrador.', 'warning');
-            return;
-        }
-        
-        // Actualizar último acceso
-        user.lastAccess = new Date().toISOString();
-        localStorage.setItem('users', JSON.stringify(users));
-        
-        currentUser = user;
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        showAppScreen();
-        updateDashboard();
-        showAlert(`Bienvenido, ${user.name}`, 'success');
-    } else {
-        showAlert('Credenciales incorrectas. Intente nuevamente.', 'danger');
-    }
-}
-
-function handleRegister(e) {
-    const name = document.getElementById('registerName').value;
-    const email = document.getElementById('registerEmail').value;
-    const password = document.getElementById('registerPassword').value;
-    const confirmPassword = document.getElementById('registerConfirmPassword').value;
-    
-    // Validaciones
-    if (!name || !email || !password || !confirmPassword) {
-        showAlert('Por favor, complete todos los campos.', 'danger');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showAlert('La contraseña debe tener al menos 6 caracteres.', 'warning');
-        return;
-    }
-    
-    if (password !== confirmPassword) {
-        showAlert('Las contraseñas no coinciden.', 'warning');
-        return;
-    }
-    
-    // Verificar si el usuario ya existe
-    if (users.find(u => u.email === email)) {
-        showAlert('Ya existe un usuario con este email.', 'warning');
-        return;
-    }
-    
-    // Crear nuevo usuario
-    const newUser = {
-        id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-        name: name,
-        email: email,
-        password: password,
-        role: 'Usuario',
-        status: 'Activo',
-        lastAccess: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-    };
-    
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    showAlert('Usuario registrado exitosamente. Ahora puede iniciar sesión.', 'success');
-    
-    // Cambiar a pestaña de login
-    const loginTab = document.getElementById('login-tab');
-    if (loginTab) {
-        loginTab.click();
-    }
-    
-    // Limpiar formulario
-    document.getElementById('registerForm').reset();
-}
-
-function quickDemoLogin() {
-    document.getElementById('loginEmail').value = 'admin@sysinvent.com';
-    document.getElementById('loginPassword').value = 'admin123';
-    // No llamamos handleLogin directamente, simulamos el envío del formulario
-    const loginForm = document.getElementById('loginForm');
-    const submitEvent = new Event('submit', { cancelable: true });
-    loginForm.dispatchEvent(submitEvent);
-}
-
-function handleLogout() {
-    currentUser = null;
-    localStorage.removeItem('currentUser');
-    showLoginScreen();
-    showAlert('Sesión cerrada correctamente.', 'info');
-}
-
-// Funciones de navegación
-function showLoginScreen() {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('appScreen').style.display = 'none';
-    // Limpiar formularios al mostrar login
-    document.getElementById('loginForm').reset();
-    document.getElementById('registerForm').reset();
-}
-
-function showAppScreen() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('appScreen').style.display = 'block';
-    
-    // Actualizar información del usuario
-    if (currentUser) {
-        document.getElementById('userNameDisplay').textContent = currentUser.name;
-        document.getElementById('userInitial').textContent = currentUser.name.charAt(0).toUpperCase();
-        document.getElementById('profileUserName').textContent = currentUser.name;
-        document.getElementById('profileUserInitial').textContent = currentUser.name.charAt(0).toUpperCase();
-        document.getElementById('profileUserRole').textContent = currentUser.role;
-    }
-    
     // Actualizar notificaciones
-    updateNotifications();
+    //updateNotifications();
     
     // Cargar datos iniciales
-    loadProductsTable();
-    loadCustomersTable();
-    loadSuppliersTable();
-    loadInventoryTable();
-    loadPurchaseInvoicesTable();
-    loadSalesInvoicesTable();
-    loadPurchaseOrdersTable();
-    loadSalesOrdersTable();
-    loadWarehousesTable();
-    loadUsersTable();
+  //  loadProductsTable();
+  //  loadCustomersTable();
+  //  loadSuppliersTable();
+  //  loadInventoryTable();
+  //  loadPurchaseInvoicesTable();
+  //  loadSalesInvoicesTable();
+  //  loadPurchaseOrdersTable();
+  //  loadSalesOrdersTable();
+  //  loadWarehousesTable();
+  //  loadUsersTable();
     
     // Cargar almacenes en los select
-    loadWarehousesSelect();
+   // loadWarehousesSelect();
     
     // Verificar y actualizar Kardex para órdenes existentes
-    checkAndUpdateKardexForExistingOrders();
+   // checkAndUpdateKardexForExistingOrders();
     
     // Mostrar estado de sincronización
-    showSyncStatus();
-}
+    //showSyncStatus();
 
-function showSection(section) {
+
+
+// ===============================
+// GENERAR CÓDIGO DE PRODUCTO AUTOMÁTICO Y LIMPIAR FORMULARIO
+// ===============================
+/*const productModal = document.getElementById('productModal');
+if (productModal) {
+  productModal.addEventListener('show.bs.modal', async () => {
+    const form = document.getElementById('productForm');
+    const codeInput = document.getElementById('productCode');
+    const subcategoryInput = document.getElementById('productSubcategory');
+
+    // Limpiar formulario
+    if (form) form.reset();
+    document.getElementById('productId').value = '';
+    
+    // Limpiar subcategoría
+    if (subcategoryInput) subcategoryInput.value = '';
+
+    // Resetear selects a opción por defecto
+    ['productCategory', 'productUnit', 'productWarehouse'].forEach(id => {
+      const select = document.getElementById(id);
+      if (select) select.selectedIndex = 0;
+    });
+
+    // Generar código automático
+    try {
+      const res = await fetch('/api/productos/next-code');
+      const data = await res.json();
+      codeInput.value = data.nextCode || '';
+    } catch (err) {
+      console.error('Error al obtener código:', err);
+      codeInput.value = 'Error';
+    }
+
+    // Cargar categorías, unidades y almacén
+    await loadCategoriasUnidadesAlmacen();
+  });
+}*/
+
+/*function showSection(section) {
     // Ocultar todas las secciones
     document.querySelectorAll('.section-content').forEach(content => {
         content.classList.remove('active');
@@ -700,135 +1011,158 @@ function showSection(section) {
     
     // Mostrar estado de sincronización
     showSyncStatus();
-}
+}*/
 
 // Funciones para el dashboard
-function updateDashboard() {
-    // Actualizar estadísticas
-    document.getElementById('totalProducts').textContent = inventoryProducts.length;
-    
-    // Calcular ventas del mes
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const monthlySales = invoices.filter(invoice => {
-        const invoiceDate = new Date(invoice.date);
-        return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear && invoice.status === "Vendida" && invoice.orderType === "sales";
-    }).length;
-    
-    document.getElementById('monthlySales').textContent = monthlySales;
-    document.getElementById('purchaseOrders').textContent = purchaseOrders.length;
-    
-    // Calcular ingresos del mes
-    const monthlyIncome = invoices.filter(invoice => {
-        const invoiceDate = new Date(invoice.date);
-        return invoiceDate.getMonth() === currentMonth && invoiceDate.getFullYear() === currentYear && invoice.status === "Vendida" && invoice.orderType === "sales";
-    }).reduce((total, invoice) => total + invoice.total, 0);
-    
-    document.getElementById('monthlyIncome').textContent = `$${monthlyIncome.toLocaleString()}`;
-    
-    // Calcular productos con stock bajo
-    const lowStockProducts = inventoryProducts.filter(p => p.stock <= p.minStock && p.stock > 0);
-    document.getElementById('lowStockCount').textContent = lowStockProducts.length;
-    
-    // Actualizar gráfico de análisis de ventas
-    updateSalesAnalysisChart();
-    
-    // Actualizar notificaciones
-    updateNotifications();
-    
-    // Actualizar alertas
-    updateAlerts();
-    
-    // Mostrar estado de sincronización
-    showSyncStatus();
-}
+/*function updateDashboard() {
+  // Obtener referencias a los elementos del dashboard
+  const totalProducts = document.getElementById('totalProducts');
+  const monthlySales = document.getElementById('monthlySales');
+  const purchaseOrdersEl = document.getElementById('purchaseOrders');
+  const monthlyIncome = document.getElementById('monthlyIncome');
+  const lowStockCount = document.getElementById('lowStockCount');
+
+  // Si alguno no existe, salimos (evita error de textContent = null)
+  if (!totalProducts || !monthlySales || !purchaseOrdersEl || !monthlyIncome || !lowStockCount) {
+    console.warn("⏳ Dashboard aún no cargado, se omite actualización.");
+    return;
+  }
+
+  // Actualizar estadísticas
+  totalProducts.textContent = inventoryProducts.length;
+
+  // Calcular ventas del mes
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+
+  const monthlySalesCount = invoices.filter(invoice => {
+    const invoiceDate = new Date(invoice.date);
+    return (
+      invoiceDate.getMonth() === currentMonth &&
+      invoiceDate.getFullYear() === currentYear &&
+      invoice.status === "Vendida" &&
+      invoice.orderType === "sales"
+    );
+  }).length;
+
+  monthlySales.textContent = monthlySalesCount;
+  purchaseOrdersEl.textContent = purchaseOrders.length;
+
+  // Calcular ingresos del mes
+  const monthlyIncomeValue = invoices
+    .filter(invoice => {
+      const invoiceDate = new Date(invoice.date);
+      return (
+        invoiceDate.getMonth() === currentMonth &&
+        invoiceDate.getFullYear() === currentYear &&
+        invoice.status === "Vendida" &&
+        invoice.orderType === "sales"
+      );
+    })
+    .reduce((total, invoice) => total + (invoice.total || 0), 0);
+
+  monthlyIncome.textContent = `$${monthlyIncomeValue.toLocaleString()}`;
+
+  // Calcular productos con stock bajo
+  const lowStockProducts = inventoryProducts.filter(
+    p => p.stock <= p.minStock && p.stock > 0
+  );
+  lowStockCount.textContent = lowStockProducts.length;
+
+  // Actualizar otros componentes (solo si existen)
+  if (typeof updateSalesAnalysisChart === "function") updateSalesAnalysisChart();
+  if (typeof updateNotifications === "function") updateNotifications();
+  if (typeof updateAlerts === "function") updateAlerts();
+  if (typeof showSyncStatus === "function") showSyncStatus();
+}*/
+
 
 // Funciones para el análisis de ventas mejorado
-function updateSalesAnalysisChart() {
-    const ctx = document.getElementById('salesAnalysisChart');
-    if (!ctx) return;
-    
-    // Obtener datos de ventas por mes
-    const salesData = getSalesDataByMonth();
-    
-    // Verificar si ya existe un gráfico y destruirlo
-    if (window.salesChartInstance) {
-        window.salesChartInstance.destroy();
-    }
-    
-    // Obtener el tipo de gráfico seleccionado
-    const chartType = document.querySelector('#salesChartTypeQuantity.active') ? 'quantity' : 'revenue';
-    
-    // Configurar datos según el tipo seleccionado
-    const labels = salesData.months;
-    const data = chartType === 'quantity' ? salesData.quantities : salesData.revenues;
-    const label = chartType === 'quantity' ? 'Cantidad Vendida' : 'Ingresos ($)';
-    const borderColor = chartType === 'quantity' ? '#3498db' : '#2ecc71';
-    const backgroundColor = chartType === 'quantity' ? 'rgba(52, 152, 219, 0.1)' : 'rgba(46, 204, 113, 0.1)';
-    
-    // Crear gráfico
-    window.salesChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                borderColor: borderColor,
-                backgroundColor: backgroundColor,
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            if (chartType === 'quantity') {
-                                label += context.parsed.y + ' unidades';
-                            } else {
-                                label += '$' + context.parsed.y.toLocaleString();
-                            }
-                            return label;
-                        }
-                    }
-                },
-                legend: {
-                    display: false
-                }
+   /*function updateSalesAnalysisChart() {
+        const ctx = document.getElementById('salesAnalysisChart');
+        if (!ctx) return;
+        
+        // Obtener datos de ventas por mes
+        const salesData = getSalesDataByMonth();
+        
+        // Verificar si ya existe un gráfico y destruirlo
+        if (window.salesChartInstance) {
+            window.salesChartInstance.destroy();
+        }
+        
+        // Obtener el tipo de gráfico seleccionado
+        const chartType = document.querySelector('#salesChartTypeQuantity.active') ? 'quantity' : 'revenue';
+        
+        // Configurar datos según el tipo seleccionado
+        const labels = salesData.months;
+        const data = chartType === 'quantity' ? salesData.quantities : salesData.revenues;
+        const label = chartType === 'quantity' ? 'Cantidad Vendida' : 'Ingresos ($)';
+        const borderColor = chartType === 'quantity' ? '#3498db' : '#2ecc71';
+        const backgroundColor = chartType === 'quantity' ? 'rgba(52, 152, 219, 0.1)' : 'rgba(46, 204, 113, 0.1)';
+        
+        // Crear gráfico
+        window.salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: borderColor,
+                    backgroundColor: backgroundColor,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: chartType === 'quantity' ? 'Unidades Vendidas' : 'Ingresos ($)'
+            options: {
+                responsive: true,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (chartType === 'quantity') {
+                                    label += context.parsed.y + ' unidades';
+                                } else {
+                                    label += '$' + context.parsed.y.toLocaleString();
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false
                     }
                 },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Meses'
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: chartType === 'quantity' ? 'Unidades Vendidas' : 'Ingresos ($)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Meses'
+                        }
                     }
                 }
             }
-        }
-    });
-    
-    // Actualizar métricas
-    updateSalesMetrics(salesData);
-}
+        });
+        
+        // Actualizar métricas
+        updateSalesMetrics(salesData);
+    }*/
 
-function getSalesDataByMonth() {
+/*function getSalesDataByMonth() {
     const months = [];
     const quantities = [];
     const revenues = [];
@@ -850,9 +1184,9 @@ function getSalesDataByMonth() {
     }
     
     return { months, quantities, revenues };
-}
+}*/
 
-function calculateSalesForMonth(date) {
+/*function calculateSalesForMonth(date) {
     // Filtrar facturas de venta para el mes y año específicos
     const month = date.getMonth();
     const year = date.getFullYear();
@@ -892,9 +1226,9 @@ function calculateSalesForMonth(date) {
     }
     
     return { quantity: totalQuantity, revenue: totalRevenue };
-}
+}*/
 
-function updateSalesMetrics(salesData) {
+/*function updateSalesMetrics(salesData) {
     // Calcular métricas
     const currentMonthSales = salesData.quantities[salesData.quantities.length - 1];
     const previousMonthSales = salesData.quantities[salesData.quantities.length - 2];
@@ -938,9 +1272,9 @@ function updateSalesMetrics(salesData) {
     
     document.getElementById('salesForecast').textContent = forecast;
     document.getElementById('salesForecast').className = getForecastClass(forecast);
-}
+}*/
 
-function getTopSellingProduct() {
+/*function getTopSellingProduct() {
     // Calcular el producto más vendido en el último mes
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
@@ -985,9 +1319,9 @@ function getTopSellingProduct() {
     }
     
     return { name: '-', quantity: 0 };
-}
+}*/
 
-function calculateSeasonality(quantities) {
+/*function calculateSeasonality(quantities) {
     if (quantities.length < 3) return 'Baja';
     
     // Calcular la desviación estándar de las cantidades
@@ -1002,9 +1336,9 @@ function calculateSeasonality(quantities) {
     if (cv < 0.1) return 'Baja';
     if (cv < 0.25) return 'Media';
     return 'Alta';
-}
+}*/
 
-function calculateSalesForecast(quantities) {
+/*function calculateSalesForecast(quantities) {
     if (quantities.length < 2) return 'Estable';
     
     // Calcular tendencia basada en los últimos meses
@@ -1023,7 +1357,7 @@ function calculateSalesForecast(quantities) {
     if (avgGrowth > -0.02) return 'Estable';
     if (avgGrowth > -0.1) return 'Moderada a la baja';
     return 'Bajista';
-}
+}*/
 
 function getTrendClass(trend) {
     switch(trend) {
@@ -1163,56 +1497,8 @@ function updateAlerts() {
     container.innerHTML = alertsHTML;
 }
 
-// Función centralizada para actualizar stock de productos
-function updateProductStock(productId, quantityChange, movementType, reason, notes = '') {
-    const productIndex = inventoryProducts.findIndex(p => p.id === productId);
-    
-    if (productIndex === -1) {
-        console.error(`Producto con ID ${productId} no encontrado`);
-        return false;
-    }
-    
-    const product = inventoryProducts[productIndex];
-    const oldStock = product.stock;
-    
-    // Actualizar stock del producto
-    if (movementType === 'entry') {
-        product.stock += quantityChange;
-    } else if (movementType === 'exit') {
-        // Validar que haya suficiente stock
-        if (product.stock < quantityChange) {
-            console.error(`Stock insuficiente para el producto: ${product.name}`);
-            return false;
-        }
-        product.stock -= quantityChange;
-    }
-    
-    // Registrar movimiento de inventario
-    const newMovement = {
-        id: inventoryMovements.length > 0 ? Math.max(...inventoryMovements.map(m => m.id)) + 1 : 1,
-        productId,
-        type: movementType,
-        quantity: quantityChange,
-        date: new Date().toISOString().split('T')[0],
-        reason,
-        notes,
-        user: currentUser.name,
-        oldStock,
-        newStock: product.stock
-    };
-    
-    inventoryMovements.push(newMovement);
-    
-    // Actualizar estado del producto basado en el nuevo stock
-    updateProductStatus(product);
-    
-    // Guardar cambios
-    localStorage.setItem('inventoryProducts', JSON.stringify(inventoryProducts));
-    localStorage.setItem('inventoryMovements', JSON.stringify(inventoryMovements));
-    
-    console.log(`Stock actualizado: ${product.name} - ${oldStock} → ${product.stock}`);
-    return true;
-}
+
+
 
 // Funciones para gestión de productos
 function loadProductsTable() {
@@ -1285,151 +1571,7 @@ function loadWarehousesSelect() {
     }
 }
 
-function saveProduct() {
-    const productId = document.getElementById('productId').value;
-    const code = document.getElementById('productCode').value;
-    const name = document.getElementById('productName').value;
-    const category = document.getElementById('productCategory').value;
-    const subcategory = document.getElementById('productSubcategory').value;
-    const price = parseFloat(document.getElementById('productPrice').value);
-    const cost = parseFloat(document.getElementById('productCost').value);
-    const unit = document.getElementById('productUnit').value;
-    const stock = parseInt(document.getElementById('productStock').value);
-    const minStock = parseInt(document.getElementById('productMinStock').value);
-    const maxStock = parseInt(document.getElementById('productMaxStock').value);
-    const warehouseId = parseInt(document.getElementById('productWarehouse').value);
-    const description = document.getElementById('productDescription').value;
-    
-    // Validaciones
-    if (!code || !name || !category || !subcategory || !price || !cost || !unit || !stock || !minStock || !maxStock || !warehouseId) {
-        showAlert('Por favor, complete todos los campos obligatorios.', 'warning');
-        return;
-    }
-    
-    if (minStock >= maxStock) {
-        showAlert('El stock mínimo debe ser menor al stock máximo.', 'warning');
-        return;
-    }
-    
-    if (productId) {
-        // Editar producto existente
-        const index = products.findIndex(p => p.id == productId);
-        if (index !== -1) {
-            const oldProduct = products[index];
-            const stockDifference = stock - oldProduct.stock;
-            
-            // Actualizar información del producto
-            products[index] = {
-                ...products[index],
-                code, name, category, subcategory, price, cost, unit, stock, minStock, maxStock, warehouseId, description
-            };
-            
-            // Actualizar también en inventario si existe
-            const inventoryIndex = inventoryProducts.findIndex(p => p.id == productId);
-            if (inventoryIndex !== -1) {
-                inventoryProducts[inventoryIndex] = {
-                    ...inventoryProducts[inventoryIndex],
-                    code, name, category, subcategory, price, cost, unit, stock, minStock, maxStock, warehouseId, description
-                };
-            } else {
-                // Si no existe en inventario, agregarlo
-                const newInventoryProduct = {
-                    ...products[index],
-                    managed: true
-                };
-                inventoryProducts.push(newInventoryProduct);
-            }
-            
-            // Si el stock cambió, registrar movimiento
-            if (stockDifference !== 0) {
-                const movementType = stockDifference > 0 ? 'entry' : 'exit';
-                const quantityChange = Math.abs(stockDifference);
-                const reason = 'Ajuste manual desde gestión de productos';
-                
-                updateProductStock(
-                    parseInt(productId), 
-                    quantityChange, 
-                    movementType, 
-                    reason,
-                    `Ajuste de stock: ${oldProduct.stock} → ${stock}`
-                );
-            }
-            
-            showAlert('Producto actualizado correctamente.', 'success');
-        }
-    } else {
-        // Verificar si el código ya existe
-        if (products.find(p => p.code === code)) {
-            showAlert('Ya existe un producto con este código.', 'warning');
-            return;
-        }
-        
-        // Crear nuevo producto
-        const newProduct = {
-            id: products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1,
-            code, name, category, subcategory, price, cost, unit, stock, minStock, maxStock, warehouseId, description,
-            status: stock > 0 ? 'Disponible' : 'Agotado',
-            managed: true
-        };
-        products.push(newProduct);
-        
-        // Agregar también al inventario
-        const newInventoryProduct = {...newProduct};
-        inventoryProducts.push(newInventoryProduct);
-        
-        // Si hay stock inicial, registrar movimiento de entrada
-        if (stock > 0) {
-            updateProductStock(
-                newProduct.id,
-                stock,
-                'entry',
-                'Stock inicial',
-                'Stock inicial del producto'
-            );
-        }
-        
-        showAlert('Producto creado correctamente.', 'success');
-    }
-    
-    localStorage.setItem('products', JSON.stringify(products));
-    localStorage.setItem('inventoryProducts', JSON.stringify(inventoryProducts));
-    
-    // Cerrar modal y actualizar tablas
-    const modal = bootstrap.Modal.getInstance(document.getElementById('productModal'));
-    if (modal) modal.hide();
-    
-    loadProductsTable();
-    loadInventoryTable();
-    updateDashboard();
-    
-    // Limpiar formulario
-    document.getElementById('productForm').reset();
-    document.getElementById('productId').value = '';
-}
 
-function editProduct(id) {
-    const product = products.find(p => p.id === id);
-    if (!product) return;
-    
-    document.getElementById('productId').value = product.id;
-    document.getElementById('productCode').value = product.code;
-    document.getElementById('productName').value = product.name;
-    document.getElementById('productCategory').value = product.category;
-    document.getElementById('productSubcategory').value = product.subcategory;
-    document.getElementById('productPrice').value = product.price;
-    document.getElementById('productCost').value = product.cost;
-    document.getElementById('productUnit').value = product.unit;
-    document.getElementById('productStock').value = product.stock;
-    document.getElementById('productMinStock').value = product.minStock;
-    document.getElementById('productMaxStock').value = product.maxStock;
-    document.getElementById('productWarehouse').value = product.warehouseId || '';
-    document.getElementById('productDescription').value = product.description || '';
-    
-    document.getElementById('productModalTitle').textContent = 'Editar Producto';
-    
-    const modal = new bootstrap.Modal(document.getElementById('productModal'));
-    modal.show();
-}
 
 function deleteProduct(id) {
     if (!confirm('¿Está seguro de que desea eliminar este producto?')) return;
@@ -1463,7 +1605,6 @@ function deleteProduct(id) {
     showAlert('Producto eliminado correctamente.', 'success');
 }
 
-// Funciones para control de inventario
 function loadInventoryTable() {
     const tableBody = document.getElementById('inventoryTableBody');
     if (!tableBody) return;
@@ -1821,133 +1962,10 @@ function showSyncStatus() {
     }
 }
 
-// Funciones para gestión de clientes
-function loadCustomersTable() {
-    const tableBody = document.getElementById('customersTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
-    if (customers.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay clientes registrados</td></tr>';
-        return;
-    }
-    
-    customers.forEach(customer => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${customer.id}</td>
-            <td>${customer.name}</td>
-            <td>${customer.email}</td>
-            <td>${customer.phone}</td>
-            <td>${customer.address}</td>
-            <td>${customer.type}</td>
-            <td class="action-buttons">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editCustomer(${customer.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer(${customer.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
 
-function saveCustomer() {
-    const customerId = document.getElementById('customerId').value;
-    const name = document.getElementById('customerName').value;
-    const email = document.getElementById('customerEmail').value;
-    const phone = document.getElementById('customerPhone').value;
-    const type = document.getElementById('customerType').value;
-    const address = document.getElementById('customerAddress').value;
-    
-    // Validaciones
-    if (!name || !email || !phone || !type) {
-        showAlert('Por favor, complete todos los campos obligatorios.', 'warning');
-        return;
-    }
-    
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showAlert('Por favor, ingrese un email válido.', 'warning');
-        return;
-    }
-    
-    if (customerId) {
-        // Editar cliente existente
-        const index = customers.findIndex(c => c.id == customerId);
-        if (index !== -1) {
-            customers[index] = { ...customers[index], name, email, phone, type, address };
-            showAlert('Cliente actualizado correctamente.', 'success');
-        }
-    } else {
-        // Verificar si el email ya existe
-        if (customers.find(c => c.email === email)) {
-            showAlert('Ya existe un cliente con este email.', 'warning');
-            return;
-        }
-        
-        // Crear nuevo cliente
-        const newCustomer = {
-            id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1,
-            name, email, phone, type, address
-        };
-        customers.push(newCustomer);
-        showAlert('Cliente creado correctamente.', 'success');
-    }
-    
-    localStorage.setItem('customers', JSON.stringify(customers));
-    
-    // Cerrar modal y actualizar tabla
-    const modal = bootstrap.Modal.getInstance(document.getElementById('customerModal'));
-    if (modal) modal.hide();
-    
-    loadCustomersTable();
-    
-    // Limpiar formulario
-    document.getElementById('customerForm').reset();
-    document.getElementById('customerId').value = '';
-}
-
-function editCustomer(id) {
-    const customer = customers.find(c => c.id === id);
-    if (!customer) return;
-    
-    document.getElementById('customerId').value = customer.id;
-    document.getElementById('customerName').value = customer.name;
-    document.getElementById('customerEmail').value = customer.email;
-    document.getElementById('customerPhone').value = customer.phone;
-    document.getElementById('customerType').value = customer.type;
-    document.getElementById('customerAddress').value = customer.address || '';
-    
-    document.getElementById('customerModalTitle').textContent = 'Editar Cliente';
-    
-    const modal = new bootstrap.Modal(document.getElementById('customerModal'));
-    modal.show();
-}
-
-function deleteCustomer(id) {
-    if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
-    
-    // Verificar si el cliente está en uso en facturas
-    const customerInUse = invoices.some(invoice => invoice.clientId === id);
-    
-    if (customerInUse) {
-        showAlert('No se puede eliminar el cliente porque está asociado a facturas.', 'warning');
-        return;
-    }
-    
-    customers = customers.filter(c => c.id !== id);
-    localStorage.setItem('customers', JSON.stringify(customers));
-    loadCustomersTable();
-    showAlert('Cliente eliminado correctamente.', 'success');
-}
 
 // Funciones para gestión de proveedores
-function loadSuppliersTable() {
+/*function loadSuppliersTable() {
     const tableBody = document.getElementById('suppliersTableBody');
     if (!tableBody) return;
     
@@ -1978,9 +1996,9 @@ function loadSuppliersTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
-function saveSupplier() {
+/*function saveSupplier() {
     const supplierId = document.getElementById('supplierId').value;
     const name = document.getElementById('supplierName').value;
     const email = document.getElementById('supplierEmail').value;
@@ -2035,9 +2053,9 @@ function saveSupplier() {
     // Limpiar formulario
     document.getElementById('supplierForm').reset();
     document.getElementById('supplierId').value = '';
-}
+}*/
 
-function editSupplier(id) {
+/*function editSupplier(id) {
     const supplier = suppliers.find(s => s.id === id);
     if (!supplier) return;
     
@@ -2052,9 +2070,9 @@ function editSupplier(id) {
     
     const modal = new bootstrap.Modal(document.getElementById('supplierModal'));
     modal.show();
-}
+}*/
 
-function deleteSupplier(id) {
+/*function deleteSupplier(id) {
     if (!confirm('¿Está seguro de que desea eliminar este proveedor?')) return;
     
     // Verificar si el proveedor está en uso en órdenes de compra
@@ -2069,7 +2087,7 @@ function deleteSupplier(id) {
     localStorage.setItem('suppliers', JSON.stringify(suppliers));
     loadSuppliersTable();
     showAlert('Proveedor eliminado correctamente.', 'success');
-}
+}*/
 
 // Funciones para facturación
 function loadPurchaseInvoicesTable() {
@@ -2183,7 +2201,7 @@ function getStatusClass(status) {
 }
 
 // Función para generar factura desde orden de compra
-function generateInvoiceFromPurchaseOrder(purchaseOrder) {
+/*function generateInvoiceFromPurchaseOrder(purchaseOrder) {
     const supplier = suppliers.find(s => s.id === purchaseOrder.supplierId);
     if (!supplier) return null;
     
@@ -2207,10 +2225,10 @@ function generateInvoiceFromPurchaseOrder(purchaseOrder) {
     localStorage.setItem('invoices', JSON.stringify(invoices));
     
     return newInvoice;
-}
+}*/
 
 // Función para generar factura desde orden de venta
-function generateInvoiceFromSalesOrder(salesOrder) {
+/*function generateInvoiceFromSalesOrder(salesOrder) {
     const customer = customers.find(c => c.id === salesOrder.clientId);
     if (!customer) return null;
     
@@ -2234,7 +2252,7 @@ function generateInvoiceFromSalesOrder(salesOrder) {
     localStorage.setItem('invoices', JSON.stringify(invoices));
     
     return newInvoice;
-}
+}*/
 
 function viewInvoiceDetails(id) {
     const invoice = invoices.find(i => i.id === id);
@@ -2471,7 +2489,7 @@ function printInvoice(id) {
     printWindow.print();
 }
 
-function printSection(tableId, title) {
+/*function printSection(tableId, title) {
     const table = document.getElementById(tableId);
     if (!table) return;
     
@@ -2514,10 +2532,10 @@ function printSection(tableId, title) {
     `);
     printWindow.document.close();
     printWindow.print();
-}
+}*/
 
 // Funciones para órdenes de compra
-function loadPurchaseOrdersTable() {
+/*function loadPurchaseOrdersTable() {
     const tableBody = document.getElementById('purchaseOrdersTableBody');
     if (!tableBody) return;
     
@@ -2572,9 +2590,9 @@ function loadPurchaseOrdersTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
-function addPurchaseOrderItem() {
+/*function addPurchaseOrderItem() {
     const tableBody = document.querySelector('#purchaseOrderItemsTable tbody');
     if (!tableBody) return;
     
@@ -2624,17 +2642,17 @@ function addPurchaseOrderItem() {
         row.remove();
         updatePurchaseOrderTotals();
     });
-}
+}*/
 
-function updatePurchaseOrderItemSubtotal(row) {
+/*function updatePurchaseOrderItemSubtotal(row) {
     const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
     const price = parseFloat(row.querySelector('.price-input').value) || 0;
     const subtotal = quantity * price;
     
     row.querySelector('.subtotal-cell').textContent = `$${subtotal.toFixed(2)}`;
-}
+}*/
 
-function updatePurchaseOrderTotals() {
+/*function updatePurchaseOrderTotals() {
     let subtotal = 0;
     document.querySelectorAll('#purchaseOrderItemsTable tbody tr').forEach(row => {
         const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
@@ -2648,9 +2666,9 @@ function updatePurchaseOrderTotals() {
     document.getElementById('purchaseOrderSubtotal').textContent = `$${subtotal.toFixed(2)}`;
     document.getElementById('purchaseOrderTax').textContent = `$${tax.toFixed(2)}`;
     document.getElementById('purchaseOrderTotal').textContent = `$${total.toFixed(2)}`;
-}
+}*/
 
-function savePurchaseOrder() {
+/*function savePurchaseOrder() {
     const orderId = document.getElementById('purchaseOrderId').value;
     const supplierId = parseInt(document.getElementById('purchaseOrderSupplier').value);
     const date = document.getElementById('purchaseOrderDate').value;
@@ -2775,9 +2793,9 @@ function savePurchaseOrder() {
     // Actualizar tablas
     loadPurchaseOrdersTable();
     loadPurchaseInvoicesTable();
-}
+}*/
 
-function editPurchaseOrder(id) {
+/*function editPurchaseOrder(id) {
     const order = purchaseOrders.find(o => o.id === id);
     if (!order) return;
     
@@ -2848,9 +2866,9 @@ function editPurchaseOrder(id) {
     
     const modal = new bootstrap.Modal(document.getElementById('purchaseOrderModal'));
     modal.show();
-}
+}*/
 
-function deletePurchaseOrder(id) {
+/*function deletePurchaseOrder(id) {
     if (!confirm('¿Está seguro de que desea eliminar esta orden de compra?')) return;
     
     const orderIndex = purchaseOrders.findIndex(o => o.id === id);
@@ -2873,10 +2891,10 @@ function deletePurchaseOrder(id) {
     loadPurchaseInvoicesTable();
     updateDashboard();
     showAlert('Orden de compra eliminada correctamente.', 'success');
-}
+}*/
 
 // Funciones para órdenes de venta
-function loadSalesOrdersTable() {
+/*function loadSalesOrdersTable() {
     const tableBody = document.getElementById('salesOrdersTableBody');
     if (!tableBody) return;
     
@@ -2931,9 +2949,9 @@ function loadSalesOrdersTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
-function addSalesOrderItem() {
+/*function addSalesOrderItem() {
     const tableBody = document.querySelector('#salesOrderItemsTable tbody');
     if (!tableBody) return;
     
@@ -2983,17 +3001,17 @@ function addSalesOrderItem() {
         row.remove();
         updateSalesOrderTotals();
     });
-}
+}*/
 
-function updateSalesOrderItemSubtotal(row) {
+/*function updateSalesOrderItemSubtotal(row) {
     const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
     const price = parseFloat(row.querySelector('.price-input').value) || 0;
     const subtotal = quantity * price;
     
     row.querySelector('.subtotal-cell').textContent = `$${subtotal.toFixed(2)}`;
-}
+}*/
 
-function updateSalesOrderTotals() {
+/*function updateSalesOrderTotals() {
     let subtotal = 0;
     document.querySelectorAll('#salesOrderItemsTable tbody tr').forEach(row => {
         const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
@@ -3007,9 +3025,9 @@ function updateSalesOrderTotals() {
     document.getElementById('salesOrderSubtotal').textContent = `$${subtotal.toFixed(2)}`;
     document.getElementById('salesOrderTax').textContent = `$${tax.toFixed(2)}`;
     document.getElementById('salesOrderTotal').textContent = `$${total.toFixed(2)}`;
-}
+}*/
 
-function saveSalesOrder() {
+/*function saveSalesOrder() {
     const orderId = document.getElementById('salesOrderId').value;
     const clientId = parseInt(document.getElementById('salesOrderClient').value);
     const date = document.getElementById('salesOrderDate').value;
@@ -3142,9 +3160,9 @@ function saveSalesOrder() {
     // Actualizar tablas
     loadSalesOrdersTable();
     loadSalesInvoicesTable();
-}
+}*/
 
-function editSalesOrder(id) {
+/*function editSalesOrder(id) {
     const order = salesOrders.find(o => o.id === id);
     if (!order) return;
     
@@ -3215,9 +3233,9 @@ function editSalesOrder(id) {
     
     const modal = new bootstrap.Modal(document.getElementById('salesOrderModal'));
     modal.show();
-}
+}*/
 
-function deleteSalesOrder(id) {
+/*function deleteSalesOrder(id) {
     if (!confirm('¿Está seguro de que desea eliminar esta orden de venta?')) return;
     
     const orderIndex = salesOrders.findIndex(o => o.id === id);
@@ -3240,10 +3258,10 @@ function deleteSalesOrder(id) {
     loadSalesInvoicesTable();
     updateDashboard();
     showAlert('Orden de venta eliminada correctamente.', 'success');
-}
+}*/
 
 // Funciones para almacenes
-function loadWarehousesTable() {
+/*function loadWarehousesTable() {
     const tableBody = document.getElementById('warehousesTableBody');
     if (!tableBody) return;
     
@@ -3277,9 +3295,9 @@ function loadWarehousesTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
-function saveWarehouse() {
+/*function saveWarehouse() {
     const warehouseId = document.getElementById('warehouseId').value;
     const name = document.getElementById('warehouseName').value;
     const location = document.getElementById('warehouseLocation').value;
@@ -3334,9 +3352,9 @@ function saveWarehouse() {
     // Limpiar formulario
     document.getElementById('warehouseForm').reset();
     document.getElementById('warehouseId').value = '';
-}
+}*/
 
-function editWarehouse(id) {
+/*function editWarehouse(id) {
     const warehouse = warehouses.find(w => w.id === id);
     if (!warehouse) return;
     
@@ -3351,9 +3369,9 @@ function editWarehouse(id) {
     
     const modal = new bootstrap.Modal(document.getElementById('warehouseModal'));
     modal.show();
-}
+}*/
 
-function deleteWarehouse(id) {
+/*function deleteWarehouse(id) {
     if (!confirm('¿Está seguro de que desea eliminar este almacén?')) return;
     
     // Verificar si el almacén tiene productos
@@ -3367,10 +3385,10 @@ function deleteWarehouse(id) {
     localStorage.setItem('warehouses', JSON.stringify(warehouses));
     loadWarehousesTable();
     showAlert('Almacén eliminado correctamente.', 'success');
-}
+}*/
 
 // Funciones para gestión de usuarios
-function loadUsersTable() {
+/*function loadUsersTable() {
     const tableBody = document.getElementById('usersTableBody');
     if (!tableBody) return;
     
@@ -3403,9 +3421,9 @@ function loadUsersTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
-function saveUser() {
+/*function saveUser() {
     const userId = document.getElementById('userId').value;
     const name = document.getElementById('userName').value;
     const email = document.getElementById('userEmail').value;
@@ -3480,9 +3498,9 @@ function saveUser() {
     // Limpiar formulario
     document.getElementById('userForm').reset();
     document.getElementById('userId').value = '';
-}
+}*/
 
-function editUser(id) {
+/*function editUser(id) {
     const user = users.find(u => u.id === id);
     if (!user) return;
     
@@ -3499,9 +3517,9 @@ function editUser(id) {
     
     const modal = new bootstrap.Modal(document.getElementById('userModal'));
     modal.show();
-}
+}*/
 
-function deleteUser(id) {
+/*function deleteUser(id) {
     if (id === currentUser.id) {
         showAlert('No puede eliminar su propio usuario.', 'warning');
         return;
@@ -3513,10 +3531,10 @@ function deleteUser(id) {
     localStorage.setItem('users', JSON.stringify(users));
     loadUsersTable();
     showAlert('Usuario eliminado correctamente.', 'success');
-}
+}*/
 
 // Funciones para el sistema Kardex
-function loadKardexTable() {
+/*function loadKardexTable() {
     const tableBody = document.getElementById('kardexTableBody');
     if (!tableBody) return;
     
@@ -3547,9 +3565,9 @@ function loadKardexTable() {
     
     // Mostrar datos iniciales
     updateKardexTable();
-}
+}*/
 
-function updateKardexTable() {
+/*function updateKardexTable() {
     const tableBody = document.getElementById('kardexTableBody');
     if (!tableBody) return;
     
@@ -3609,124 +3627,21 @@ function updateKardexTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
 // Funciones para informes y KPIs
-function loadReports() {
+/*function loadReports() {
     // Actualizar KPIs basados en datos reales
     updateKPIs();
     
     // Actualizar gráficos
     updateCategoryChart();
     updateInventoryTurnoverChart();
-}
+}*/
 
-function updateKPIs() {
-    // Calcular margen bruto
-    const totalCost = inventoryProducts.reduce((sum, product) => sum + (product.stock * product.cost), 0);
-    const totalValue = inventoryProducts.reduce((sum, product) => sum + (product.stock * product.price), 0);
-    const grossMargin = totalValue > 0 ? ((totalValue - totalCost) / totalValue * 100).toFixed(1) : 0;
-    
-    document.getElementById('grossMargin').textContent = `${grossMargin}%`;
-    
-    // Calcular rotación de inventario (simplificado)
-    const totalSales = invoices.filter(invoice => invoice.status === "Vendida" && invoice.orderType === "sales").reduce((sum, invoice) => sum + invoice.total, 0);
-    const avgInventory = totalValue / 2; // Simplificación
-    const inventoryTurnover = avgInventory > 0 ? (totalSales / avgInventory).toFixed(1) : 0;
-    
-    document.getElementById('inventoryTurnover').textContent = inventoryTurnover;
-    
-    // Calcular tasa de venta
-    const totalStock = inventoryProducts.reduce((sum, product) => sum + product.stock, 0);
-    const totalSold = invoices.filter(invoice => invoice.status === "Vendida" && invoice.orderType === "sales").reduce((sum, invoice) => {
-        return sum + invoice.items.reduce((itemSum, item) => itemSum + item.quantity, 0);
-    }, 0);
-    const sellThrough = totalStock > 0 ? (totalSold / (totalStock + totalSold) * 100).toFixed(1) : 0;
-    
-    document.getElementById('sellThrough').textContent = `${sellThrough}%`;
-    
-    // Calcular tasa de ruptura de stock
-    const outOfStockProducts = inventoryProducts.filter(p => p.stock === 0).length;
-    const stockoutRate = inventoryProducts.length > 0 ? (outOfStockProducts / inventoryProducts.length * 100).toFixed(1) : 0;
-    
-    document.getElementById('stockoutRate').textContent = `${stockoutRate}%`;
-}
-
-function updateCategoryChart() {
-    const ctx = document.getElementById('categoryChart');
-    if (!ctx) return;
-    
-    // Agrupar productos por categoría
-    const categories = {};
-    inventoryProducts.forEach(product => {
-        if (!categories[product.category]) {
-            categories[product.category] = 0;
-        }
-        categories[product.category] += product.stock * product.price;
-    });
-    
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(categories),
-            datasets: [{
-                data: Object.values(categories),
-                backgroundColor: ['#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#e74c3c', '#1abc9c']
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'bottom'
-                }
-            }
-        }
-    });
-}
-
-function updateInventoryTurnoverChart() {
-    const ctx = document.getElementById('inventoryTurnoverChart');
-    if (!ctx) return;
-    
-    // Calcular rotación mensual
-    const monthlyTurnover = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-    
-    invoices.filter(invoice => invoice.status === "Vendida" && invoice.orderType === "sales").forEach(invoice => {
-        const invoiceDate = new Date(invoice.date);
-        const month = invoiceDate.getMonth();
-        
-        // Calcular valor de inventario promedio para el mes (simplificado)
-        const avgInventory = inventoryProducts.reduce((sum, product) => sum + (product.stock * product.cost), 0) / 2;
-        
-        if (avgInventory > 0) {
-            monthlyTurnover[month] += invoice.total / avgInventory;
-        }
-    });
-    
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-            datasets: [{
-                label: 'Rotación de Inventario',
-                data: monthlyTurnover,
-                backgroundColor: '#3498db'
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-}
 
 // Funciones para generar informes
-function generateSalesReport() {
+/*function generateSalesReport() {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
@@ -3761,9 +3676,9 @@ function generateSalesReport() {
             ${getTopProductsList()}
         </ul>
     `);
-}
+}*/
 
-function getTopProductsList() {
+/*function getTopProductsList() {
     const productSales = {};
     
     invoices.filter(invoice => invoice.status === "Vendida" && invoice.orderType === "sales").forEach(invoice => {
@@ -3793,9 +3708,9 @@ function getTopProductsList() {
     return topProducts.map(product => 
         `<li>${product.name} - ${product.quantity} unidades</li>`
     ).join('');
-}
+}*/
 
-function generatePurchasesReport() {
+/*function generatePurchasesReport() {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
@@ -3816,7 +3731,7 @@ function generatePurchasesReport() {
             ${getTopSuppliersList()}
         </ul>
     `);
-}
+}*/
 
 function getTopSuppliersList() {
     const supplierPurchases = {};
@@ -3848,7 +3763,7 @@ function getTopSuppliersList() {
     ).join('');
 }
 
-function generateInventoryReport() {
+/*function generateInventoryReport() {
     const lowStockProducts = inventoryProducts.filter(p => p.stock <= p.minStock && p.stock > 0);
     const outOfStockProducts = inventoryProducts.filter(p => p.stock === 0);
     
@@ -3874,9 +3789,9 @@ function generateInventoryReport() {
             ).join('') || '<li>No hay productos agotados</li>'}
         </ul>
     `);
-}
+}*/
 
-function generateCustomersReport() {
+/*function generateCustomersReport() {
     const customerTypes = {};
     customers.forEach(customer => {
         if (!customerTypes[customer.type]) {
@@ -3906,9 +3821,9 @@ function generateCustomersReport() {
             ).join('')}
         </ul>
     `);
-}
+}*/
 
-function generateSuppliersReport() {
+/*function generateSuppliersReport() {
     showReport('Informe de Proveedores', `
         <h5>Resumen de Proveedores</h5>
         <p>Total de proveedores: ${suppliers.length}</p>
@@ -3922,9 +3837,9 @@ function generateSuppliersReport() {
             ).join('') || '<li>No hay proveedores registrados</li>'}
         </ul>
     `);
-}
+}*/
 
-function generateFinancialReport() {
+/*function generateFinancialReport() {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     
@@ -3953,9 +3868,9 @@ function generateFinancialReport() {
         <p>Proyección de gastos para el próximo mes: $${(monthlyExpenses * 1.05).toLocaleString()}</p>
         <p>Utilidad proyectada: $${(monthlyIncome * 1.1 - monthlyExpenses * 1.05).toLocaleString()}</p>
     `);
-}
+}*/
 
-function showReport(title, content) {
+/*function showReport(title, content) {
     document.getElementById('reportTitle').textContent = title;
     document.getElementById('reportContent').innerHTML = content;
     document.getElementById('reportResults').style.display = 'block';
@@ -3998,7 +3913,7 @@ function printReport() {
     `);
     printWindow.document.close();
     printWindow.print();
-}
+}*/
 
 // Búsqueda global
 function performGlobalSearch() {
@@ -4057,33 +3972,29 @@ function performGlobalSearch() {
     resultsContainer.style.display = 'block';
 }
 
-// Funciones auxiliares
-function showAlert(message, type) {
-    // Crear alerta Bootstrap
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    alertDiv.style.top = '20px';
-    alertDiv.style.right = '20px';
-    alertDiv.style.zIndex = '9999';
-    alertDiv.style.minWidth = '300px';
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // Insertar en el body
-    document.body.appendChild(alertDiv);
-    
-    // Auto-eliminar después de 5 segundos
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 5000);
+
+
+// ===============================
+// Mostrar la pantalla de login
+// ===============================
+function showLoginScreen() {
+  const loginScreen = document.getElementById('loginScreen');
+  const appScreen = document.getElementById('appScreen');
+
+  if (loginScreen && appScreen) {
+    loginScreen.style.display = 'flex';
+    appScreen.style.display = 'none';
+  }
+
+  // Limpiar formularios (por si el usuario vuelve a login)
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  if (loginForm) loginForm.reset();
+  if (registerForm) registerForm.reset();
 }
 
 // Inicializar gráficos al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
+/*document.addEventListener('DOMContentLoaded', function() {
     // Inicializar medidor de inventario (simulado)
     const gaugeContainer = document.getElementById('inventoryGauge');
     if (gaugeContainer) {
@@ -4095,7 +4006,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
     }
-});
+});*/
 
 // Funciones globales para botones
 window.editProduct = editProduct;

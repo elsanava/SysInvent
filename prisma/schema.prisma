@@ -1,0 +1,292 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ajustes_inventario {
+  id             Int       @id @default(autoincrement())
+  producto_id    Int
+  tipo           String    @db.VarChar(20)
+  cantidad       Int
+  fecha          DateTime  @db.Date
+  motivo         String    @db.VarChar(255)
+  notas          String?
+  usuario_id     Int
+  stock_anterior Int
+  stock_actual   Int
+  creado_en      DateTime? @default(now()) @db.Timestamp(6)
+  productos      productos @relation(fields: [producto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuarios       usuarios  @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model almacenes {
+  id                 Int                  @id @default(autoincrement())
+  nombre             String               @db.VarChar(100)
+  ubicacion          String               @db.VarChar(255)
+  capacidad          Int
+  responsable        String               @db.VarChar(100)
+  descripcion        String?
+  creado_en          DateTime?            @default(now()) @db.Timestamp(6)
+  actualizado_en     DateTime?            @default(now()) @db.Timestamp(6)
+  orden_compra_items orden_compra_items[]
+  productos          productos[]
+}
+
+model categorias {
+  id          Int         @id @default(autoincrement())
+  nombre      String      @db.VarChar(100)
+  descripcion String?
+  creado_en   DateTime?   @default(now()) @db.Timestamp(6)
+  productos   productos[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model clientes {
+  id             Int             @id @default(autoincrement())
+  nombre         String          @db.VarChar(100)
+  email          String          @unique @db.VarChar(100)
+  telefono       String?         @db.VarChar(20)
+  tipo           String          @db.VarChar(20)
+  direccion      String?
+  creado_en      DateTime?       @default(now()) @db.Timestamp(6)
+  actualizado_en DateTime?       @default(now()) @db.Timestamp(6)
+  facturas       facturas[]
+  ordenes_venta  ordenes_venta[]
+}
+
+model configuraciones {
+  id             Int       @id @default(autoincrement())
+  clave          String    @unique @db.VarChar(100)
+  valor          String
+  descripcion    String?
+  actualizado_en DateTime? @default(now()) @db.Timestamp(6)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model facturas {
+  id             Int          @id @default(autoincrement())
+  numero_factura String       @unique @db.VarChar(50)
+  tipo           String       @db.VarChar(10)
+  orden_id       Int
+  cliente_id     Int?
+  proveedor_id   Int?
+  fecha          DateTime     @db.Date
+  subtotal       Decimal      @db.Decimal(10, 2)
+  impuesto       Decimal      @db.Decimal(10, 2)
+  total          Decimal      @db.Decimal(10, 2)
+  estado         String       @db.VarChar(20)
+  notas          String?
+  usuario_id     Int
+  creado_en      DateTime?    @default(now()) @db.Timestamp(6)
+  clientes       clientes?    @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  proveedores    proveedores? @relation(fields: [proveedor_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuarios       usuarios     @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([fecha], map: "idx_facturas_fecha")
+  @@index([numero_factura], map: "idx_facturas_numero")
+}
+
+model logs_sistema {
+  id         Int       @id @default(autoincrement())
+  usuario_id Int?
+  accion     String    @db.VarChar(255)
+  modulo     String    @db.VarChar(100)
+  detalles   String?
+  ip_address String?   @db.VarChar(45)
+  creado_en  DateTime? @default(now()) @db.Timestamp(6)
+  usuarios   usuarios? @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model movimientos_inventario {
+  id             Int       @id @default(autoincrement())
+  producto_id    Int
+  tipo           String    @db.VarChar(10)
+  cantidad       Int
+  fecha          DateTime  @db.Date
+  motivo         String    @db.VarChar(255)
+  notas          String?
+  usuario_id     Int
+  orden_id       Int?
+  tipo_orden     String?   @db.VarChar(10)
+  stock_anterior Int
+  stock_actual   Int
+  costo_unitario Decimal   @db.Decimal(10, 2)
+  costo_total    Decimal   @db.Decimal(10, 2)
+  creado_en      DateTime? @default(now()) @db.Timestamp(6)
+  productos      productos @relation(fields: [producto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuarios       usuarios  @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([fecha], map: "idx_movimientos_fecha")
+  @@index([producto_id], map: "idx_movimientos_producto")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model notificaciones {
+  id         Int       @id @default(autoincrement())
+  usuario_id Int
+  titulo     String    @db.VarChar(255)
+  mensaje    String
+  tipo       String    @db.VarChar(10)
+  leida      Boolean?  @default(false)
+  creado_en  DateTime? @default(now()) @db.Timestamp(6)
+  usuarios   usuarios  @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model orden_compra_items {
+  id              Int            @id @default(autoincrement())
+  orden_compra_id Int
+  producto_id     Int
+  cantidad        Int
+  precio_unitario Decimal        @db.Decimal(10, 2)
+  subtotal        Decimal        @db.Decimal(10, 2)
+  almacen_id      Int
+  almacenes       almacenes      @relation(fields: [almacen_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  ordenes_compra  ordenes_compra @relation(fields: [orden_compra_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  productos       productos      @relation(fields: [producto_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ordenes_compra {
+  id                 Int                  @id @default(autoincrement())
+  numero_orden       String               @unique @db.VarChar(50)
+  proveedor_id       Int
+  fecha              DateTime             @db.Date
+  subtotal           Decimal              @db.Decimal(10, 2)
+  impuesto           Decimal              @db.Decimal(10, 2)
+  total              Decimal              @db.Decimal(10, 2)
+  estado             String?              @default("Pendiente") @db.VarChar(20)
+  notas              String?
+  usuario_id         Int
+  creado_en          DateTime?            @default(now()) @db.Timestamp(6)
+  actualizado_en     DateTime?            @default(now()) @db.Timestamp(6)
+  orden_compra_items orden_compra_items[]
+  proveedores        proveedores          @relation(fields: [proveedor_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  usuarios           usuarios             @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([fecha], map: "idx_ordenes_compra_fecha")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ordenes_venta {
+  id             Int       @id @default(autoincrement())
+  numero_orden   String    @unique @db.VarChar(50)
+  cliente_id     Int
+  fecha          DateTime  @db.Date
+  subtotal       Decimal   @db.Decimal(10, 2)
+  impuesto       Decimal   @db.Decimal(10, 2)
+  total          Decimal   @db.Decimal(10, 2)
+  estado         String?   @default("Pendiente") @db.VarChar(20)
+  notas          String?
+  usuario_id     Int
+  creado_en      DateTime? @default(now()) @db.Timestamp(6)
+  actualizado_en DateTime? @default(now()) @db.Timestamp(6)
+  clientes       clientes  @relation(fields: [cliente_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuarios       usuarios  @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([fecha], map: "idx_ordenes_venta_fecha")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model productos {
+  id                     Int                      @id @default(autoincrement())
+  codigo                 String                   @unique @db.VarChar(50)
+  nombre                 String                   @db.VarChar(200)
+  categoria_id           Int
+  subcategoria           String?                  @db.VarChar(100)
+  descripcion            String?
+  precio                 Decimal                  @db.Decimal(10, 2)
+  costo                  Decimal                  @db.Decimal(10, 2)
+  unidad_id              Int // relación con unidades_medida
+  marcas_id              Int // NUEVO: Campo para la relación con marcas
+  stock_actual           Int?                     @default(0)
+  stock_minimo           Int
+  stock_maximo           Int
+  almacen_id             Int
+  gestionado             Boolean?                 @default(true)
+  estado                 String?                  @default("Disponible") @db.VarChar(20)
+  creado_en              DateTime?                @default(now()) @db.Timestamp(6)
+  actualizado_en         DateTime?                @default(now()) @db.Timestamp(6)
+  ajustes_inventario     ajustes_inventario[]
+  movimientos_inventario movimientos_inventario[]
+  orden_compra_items     orden_compra_items[]
+  almacenes              almacenes                @relation(fields: [almacen_id], references: [id], onDelete: Cascade)
+  categorias             categorias               @relation(fields: [categoria_id], references: [id], onDelete: Cascade)
+  unidades_medida        unidades_medida          @relation(fields: [unidad_id], references: [id]) // relación existente
+  marcas                 marcas                   @relation(fields: [marcas_id], references: [id]) // NUEVO: Relación con marcas
+
+  @@index([codigo], map: "idx_productos_codigo")
+  @@index([nombre], map: "idx_productos_nombre")
+}
+
+model unidades_medida {
+  id        Int         @id @default(autoincrement())
+  nombre    String      @unique @db.VarChar(50)
+  productos productos[]
+
+  @@map("unidades_medida") // fuerza el nombre exacto de la tabla en la BD
+}
+
+model marcas {
+  id                Int                  @id @default(autoincrement())
+  nombre            String               @unique @db.VarChar(50)
+  descripcion       String?
+  created_at        DateTime             @default(now())
+  productos         productos[] // Relación existente
+  marcasProveedores marcas_proveedores[]
+
+  @@map("marcas") // fuerza el nombre exacto de la tabla en la BD
+}
+
+model marcas_proveedores {
+  id             Int      @id @default(autoincrement())
+  marcas_id      Int
+  proveedores_id Int
+  created_at     DateTime @default(now())
+
+  // Relaciones
+  marcas      marcas      @relation(fields: [marcas_id], references: [id], onDelete: Cascade)
+  proveedores proveedores @relation(fields: [proveedores_id], references: [id], onDelete: Cascade)
+
+  // Mapear a la tabla en la base de datos
+  @@map("marcas_proveedores")
+}
+
+model proveedores {
+  id                   Int                  @id @default(autoincrement())
+  nombre               String               @db.VarChar(100)
+  email                String               @unique @db.VarChar(100)
+  telefono             String?              @db.VarChar(20)
+  productos_suministra String?
+  direccion            String?
+  creado_en            DateTime?            @default(now()) @db.Timestamp(6)
+  actualizado_en       DateTime?            @default(now()) @db.Timestamp(6)
+  facturas             facturas[]
+  ordenes_compra       ordenes_compra[]
+  marcasProveedores    marcas_proveedores[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model usuarios {
+  id                     Int                      @id @default(autoincrement())
+  nombre                 String                   @db.VarChar(100)
+  email                  String                   @unique @db.VarChar(100)
+  password               String                   @db.VarChar(255)
+  rol                    String                   @db.VarChar(20)
+  estado                 String?                  @default("Activo") @db.VarChar(10)
+  ultimo_acceso          DateTime?                @db.Timestamp(6)
+  creado_en              DateTime?                @default(now()) @db.Timestamp(6)
+  actualizado_en         DateTime?                @default(now()) @db.Timestamp(6)
+  ajustes_inventario     ajustes_inventario[]
+  facturas               facturas[]
+  logs_sistema           logs_sistema[]
+  movimientos_inventario movimientos_inventario[]
+  notificaciones         notificaciones[]
+  ordenes_compra         ordenes_compra[]
+  ordenes_venta          ordenes_venta[]
+}

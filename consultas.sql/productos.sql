@@ -1,4 +1,15 @@
-INSERT INTO productos (codigo, nombre, categoria_id, subcategoria, descripcion, precio, costo, unidad_medida, stock_actual, stock_minimo, stock_maximo, almacen_id, gestionado, estado)
+ALTER TABLE productos
+ADD COLUMN marcas_id INT REFERENCES marcas(id);
+
+ALTER TABLE productos
+DROP COLUMN unidad_medida;
+
+DELETE FROM productos
+WHERE id = 1993;
+
+SELECT * FROM productos
+
+INSERT INTO productos (codigo, nombre, categoria_id, subcategoria, descripcion, precio, costo, unidad_medida, stock_actual, stock_minimo, stock_maximo, almacen_id, gestionado, estado, marcas)
 VALUES
 ('PRD-0001', 'Portalámparas plástico premium', 3, 'General', 'Portalámparas plástico premium de alta calidad.', 84.23, 54.91, 'Unidad', 155, 20, 65, 1, TRUE, 'Disponible'),
 ('PRD-0002', 'Mini sierra inoxidable', 1, 'General', 'Mini sierra inoxidable de alta calidad.', 361.2, 308.12, 'Unidad', 211, 4, 98, 1, TRUE, 'Disponible'),
@@ -1000,3 +1011,4 @@ VALUES
 ('PRD-0998', 'Pintura anticorrosiva industrial', 2, 'General', 'Pintura anticorrosiva industrial de alta calidad.', 217.82, 174.96, 'Unidad', 409, 19, 34, 1, TRUE, 'Disponible'),
 ('PRD-0999', 'Bloque de concreto premium', 5, 'General', 'Bloque de concreto premium de alta calidad.', 50.79, 32.61, 'Unidad', 410, 18, 98, 1, TRUE, 'Disponible'),
 ('PRD-1000', 'Sellador acrílico mediano', 2, 'General', 'Sellador acrílico mediano de alta calidad.', 275.41, 197.06, 'Unidad', 442, 12, 48, 1, TRUE, 'Disponible');
+
