@@ -92,3 +92,6 @@ function updateKardexTable() {
         tableBody.appendChild(row);
     });
 }
+
+window.loadKardexTable = loadKardexTable;
+window.updateKardexTable = updateKardexTable;

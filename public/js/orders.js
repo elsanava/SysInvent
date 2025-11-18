@@ -1,723 +1,368 @@
-function addPurchaseOrderItem() {
-    const tableBody = document.querySelector('#purchaseOrderItemsTable tbody');
-    if (!tableBody) return;
-    
-    // Crear fila para nuevo item
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td>
-            <select class="form-select product-select">
-                <option value="">Seleccionar producto</option>
-                ${inventoryProducts.map(p => `<option value="${p.id}" data-price="${p.cost}" data-warehouse="${p.warehouseId}">${p.name}</option>`).join('')}
-            </select>
-        </td>
-        <td><input type="number" class="form-control quantity-input" min="1" value="1"></td>
-        <td><input type="number" class="form-control price-input" step="0.01" readonly></td>
-        <td class="subtotal-cell">$0.00</td>
-        <td class="warehouse-cell"></td>
-        <td><button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-times"></i></button></td>
-    `;
-    
-    tableBody.appendChild(row);
-    
-    // Configurar event listeners para el nuevo item
-    const productSelect = row.querySelector('.product-select');
-    const quantityInput = row.querySelector('.quantity-input');
-    const priceInput = row.querySelector('.price-input');
-    const removeBtn = row.querySelector('.remove-item');
-    
-    productSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const price = selectedOption.getAttribute('data-price') || 0;
-        const warehouseId = selectedOption.getAttribute('data-warehouse');
-        const warehouse = warehouses.find(w => w.id == warehouseId);
-        const warehouseName = warehouse ? warehouse.name : 'Sin asignar';
-        
-        priceInput.value = price;
-        row.querySelector('.warehouse-cell').textContent = warehouseName;
-        updatePurchaseOrderItemSubtotal(row);
-        updatePurchaseOrderTotals();
-    });
-    
-    quantityInput.addEventListener('input', function() {
-        updatePurchaseOrderItemSubtotal(row);
-        updatePurchaseOrderTotals();
-    });
-    
-    removeBtn.addEventListener('click', function() {
-        row.remove();
-        updatePurchaseOrderTotals();
-    });
+// ===============================
+// ORDERS 
+// ===============================
+
+
+function createOrderItemRow(productsList, warehousesList, item = {}) {
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td>
+      <select class="form-select product-select">
+        <option value="">Seleccionar producto</option>
+        ${productsList.map(p => `<option value="${p.id}" data-price="${(p.precio ?? p.price) || 0}" ${p.id === item.producto_id ? 'selected' : ''}>${p.nombre ?? p.name}</option>`).join('')}
+      </select>
+    </td>
+    <td><input type="number" class="form-control quantity-input" min="1" value="${item.cantidad || 1}"></td>
+    <td><input type="number" class="form-control price-input" step="0.01" value="${item.precio_unitario || (item.precio || item.price) || ''}" readonly></td>
+    <td class="subtotal-cell">${formatMoney((item.cantidad || 0) * (item.precio_unitario || item.precio || 0))}</td>
+    <td>
+      <select class="form-select warehouse-select">
+        ${warehousesList.map(w => `<option value="${w.id}" ${w.id === (item.almacen_id || w.id) ? 'selected' : ''}>${w.nombre || w.name}</option>`).join('')}
+      </select>
+    </td>
+    <td><button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-times"></i></button></td>
+  `;
+  // attach listeners
+  const productSelect = row.querySelector('.product-select');
+  const quantityInput = row.querySelector('.quantity-input');
+  const priceInput = row.querySelector('.price-input');
+  const removeBtn = row.querySelector('.remove-item');
+
+  productSelect.addEventListener('change', function() {
+    const opt = this.options[this.selectedIndex];
+    const price = opt.getAttribute('data-price') || 0;
+    priceInput.value = price;
+    updateOrderItemSubtotal(row);
+    updateOrderTotals(row.closest('table'));
+  });
+
+  quantityInput.addEventListener('input', () => { updateOrderItemSubtotal(row); updateOrderTotals(row.closest('table')); });
+  removeBtn.addEventListener('click', () => { row.remove(); updateOrderTotals(row.closest('table')); });
+
+  return row;
 }
 
-function savePurchaseOrder() {
-    const orderId = document.getElementById('purchaseOrderId').value;
-    const supplierId = parseInt(document.getElementById('purchaseOrderSupplier').value);
-    const date = document.getElementById('purchaseOrderDate').value;
-    const status = document.getElementById('purchaseOrderStatus').value;
-    const notes = document.getElementById('purchaseOrderNotes').value;
-    
-    if (!supplierId || !date) {
-        showAlert('Por favor, complete todos los campos obligatorios.', 'warning');
-        return;
-    }
-    
-    // Recolectar items de la orden de compra
-    const items = [];
-    let hasError = false;
-    
-    document.querySelectorAll('#purchaseOrderItemsTable tbody tr').forEach(row => {
-        const productId = parseInt(row.querySelector('.product-select').value);
-        const quantity = parseInt(row.querySelector('.quantity-input').value);
-        const price = parseFloat(row.querySelector('.price-input').value);
-        
-        if (!productId || quantity <= 0) {
-            hasError = true;
-            return;
-        }
-        
-        items.push({ productId, quantity, price });
+function updateOrderItemSubtotal(row) {
+  const qty = parseInt(row.querySelector('.quantity-input').value) || 0;
+  const price = parseFloat(row.querySelector('.price-input').value) || 0;
+  const subtotal = qty * price;
+  row.querySelector('.subtotal-cell').textContent = formatMoney(subtotal);
+}
+
+function updateOrderTotals(table) {
+  if (!table) return;
+  let subtotal = 0;
+  table.querySelectorAll('tbody tr').forEach(row => {
+    const qty = parseInt(row.querySelector('.quantity-input').value) || 0;
+    const price = parseFloat(row.querySelector('.price-input').value) || 0;
+    subtotal += qty * price;
+  });
+  const tax = +(subtotal * 0.16);
+  const total = subtotal + tax;
+
+  
+  const subtotalEl = table.closest('.order-card')?.querySelector('.order-subtotal') || table.dataset.subtotalEl && document.querySelector(table.dataset.subtotalEl);
+  const taxEl = table.closest('.order-card')?.querySelector('.order-tax') || table.dataset.taxEl && document.querySelector(table.dataset.taxEl);
+  const totalEl = table.closest('.order-card')?.querySelector('.order-total') || table.dataset.totalEl && document.querySelector(table.dataset.totalEl);
+
+  if (subtotalEl) subtotalEl.textContent = formatMoney(subtotal);
+  if (taxEl) taxEl.textContent = formatMoney(tax);
+  if (totalEl) totalEl.textContent = formatMoney(total);
+}
+
+
+async function savePurchaseOrder() {
+  const orderId = document.getElementById('purchaseOrderId')?.value;
+  const proveedor_id = parseInt(document.getElementById('purchaseOrderSupplier').value);
+  const fecha = document.getElementById('purchaseOrderDate')?.value;
+  const estado = document.getElementById('purchaseOrderStatus')?.value;
+  const notas = document.getElementById('purchaseOrderNotes')?.value;
+
+  if (!proveedor_id || !fecha) { showAlert('Proveedor y fecha obligatorios', 'warning'); return; }
+
+  const items = [];
+  document.querySelectorAll('#purchaseOrderItemsTable tbody tr').forEach(row => {
+    const productId = parseInt(row.querySelector('.product-select').value) || null;
+    const cantidad = parseInt(row.querySelector('.quantity-input').value) || 0;
+    const precio_unitario = parseFloat(row.querySelector('.price-input').value) || 0;
+    const almacen_id = parseInt(row.querySelector('.warehouse-select').value) || (warehouses[0] && warehouses[0].id) || 1;
+    if (!productId || cantidad <= 0) return;
+    items.push({ producto_id: productId, cantidad, precio_unitario, almacen_id });
+  });
+
+  if (items.length === 0) { showAlert('Agrega al menos 1 item', 'warning'); return; }
+
+  const payload = { proveedor_id, fecha, estado, notas, usuario_id: currentUser?.id || null, items };
+
+  try {
+    const url = orderId ? `${API_URL}/ordenes-compra/${orderId}` : `${API_URL}/ordenes-compra`;
+    const method = orderId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
-    
-    if (hasError) {
-        showAlert('Por favor, verifique los items de la orden de compra.', 'warning');
-        return;
-    }
-    
-    if (items.length === 0) {
-        showAlert('La orden de compra debe tener al menos un producto.', 'warning');
-        return;
-    }
-    
-    // Calcular totales
-    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-    const tax = subtotal * 0.16;
-    const total = subtotal + tax;
-    
-    if (orderId) {
-        // Editar orden existente
-        const index = purchaseOrders.findIndex(o => o.id == orderId);
-        if (index !== -1) {
-            purchaseOrders[index] = {
-                ...purchaseOrders[index],
-                supplierId,
-                date,
-                items,
-                subtotal,
-                tax,
-                total,
-                status,
-                notes
-            };
-            
-            // Actualizar Kardex automáticamente si el estado es válido
-            updateKardexAutomatically(purchaseOrders[index], 'purchase');
-            
-            // Actualizar la factura asociada si existe
-            if (purchaseOrders[index].invoiceId) {
-                const invoiceIndex = invoices.findIndex(i => i.id == purchaseOrders[index].invoiceId);
-                if (invoiceIndex !== -1) {
-                    invoices[invoiceIndex] = {
-                        ...invoices[invoiceIndex],
-                        items: [...items],
-                        subtotal,
-                        tax,
-                        total,
-                        status
-                    };
-                    localStorage.setItem('invoices', JSON.stringify(invoices));
-                }
-            }
-            
-            showAlert('Orden de compra actualizada correctamente.', 'success');
-        }
-    } else {
-        // Crear nueva orden de compra
-        const newPurchaseOrder = {
-            id: purchaseOrders.length > 0 ? Math.max(...purchaseOrders.map(o => o.id)) + 1 : 1,
-            supplierId,
-            date,
-            items,
-            subtotal,
-            tax,
-            total,
-            status: status,
-            notes,
-            invoiceId: null
-        };
-        
-        purchaseOrders.push(newPurchaseOrder);
-        
-        // Actualizar Kardex automáticamente si el estado es válido
-        updateKardexAutomatically(newPurchaseOrder, 'purchase');
-        
-        // Generar factura automáticamente
-        const invoice = generateInvoiceFromPurchaseOrder(newPurchaseOrder);
-        if (invoice) {
-            newPurchaseOrder.invoiceId = invoice.id;
-        }
-        
-        showAlert('Orden de compra creada correctamente.', 'success');
-    }
-    
-    localStorage.setItem('purchaseOrders', JSON.stringify(purchaseOrders));
-    localStorage.setItem('invoices', JSON.stringify(invoices));
-    
-    // Cerrar modal
+    const data = await res.json();
+    if (!res.ok) { showAlert(data.message || 'Error guardando orden', 'danger'); return; }
+    showAlert(data.message || 'Orden guardada', 'success');
+    // refresh data
+    await loadInventoryData();
+    await loadPurchaseOrders();
+    // close modal
     const modal = bootstrap.Modal.getInstance(document.getElementById('purchaseOrderModal'));
     if (modal) modal.hide();
-    
-    // Limpiar formulario
-    document.getElementById('purchaseOrderForm').reset();
-    document.querySelector('#purchaseOrderItemsTable tbody').innerHTML = '';
-    updatePurchaseOrderTotals();
-    
-    // Actualizar tablas
-    loadPurchaseOrdersTable();
-    loadPurchaseInvoicesTable();
+  } catch (err) {
+    console.error('savePurchaseOrder error', err);
+    showAlert('Error al conectar', 'danger');
+  }
 }
 
-function deletePurchaseOrder(id) {
-    if (!confirm('¿Está seguro de que desea eliminar esta orden de compra?')) return;
-    
-    const orderIndex = purchaseOrders.findIndex(o => o.id === id);
-    if (orderIndex === -1) return;
-    
-    // Eliminar la factura asociada si existe
-    const order = purchaseOrders[orderIndex];
-    if (order.invoiceId) {
-        const invoiceIndex = invoices.findIndex(i => i.id === order.invoiceId);
-        if (invoiceIndex !== -1) {
-            invoices.splice(invoiceIndex, 1);
-        }
-    }
-    
-    purchaseOrders.splice(orderIndex, 1);
-    localStorage.setItem('purchaseOrders', JSON.stringify(purchaseOrders));
-    localStorage.setItem('invoices', JSON.stringify(invoices));
-    
-    loadPurchaseOrdersTable();
-    loadPurchaseInvoicesTable();
-    updateDashboard();
-    showAlert('Orden de compra eliminada correctamente.', 'success');
-}
 
-function editPurchaseOrder(id) {
-    const order = purchaseOrders.find(o => o.id === id);
-    if (!order) return;
-    
-    document.getElementById('purchaseOrderId').value = order.id;
-    document.getElementById('purchaseOrderSupplier').value = order.supplierId;
-    document.getElementById('purchaseOrderDate').value = order.date;
-    document.getElementById('purchaseOrderStatus').value = order.status;
-    document.getElementById('purchaseOrderNotes').value = order.notes || '';
-    
-    // Cargar items de la orden
-    const itemsTableBody = document.querySelector('#purchaseOrderItemsTable tbody');
-    itemsTableBody.innerHTML = '';
-    
-    order.items.forEach(item => {
-        const product = inventoryProducts.find(p => p.id === item.productId);
-        const warehouse = warehouses.find(w => w.id === product.warehouseId);
-        const warehouseName = warehouse ? warehouse.name : 'Sin asignar';
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                <select class="form-select product-select">
-                    <option value="">Seleccionar producto</option>
-                    ${inventoryProducts.map(p => `<option value="${p.id}" data-price="${p.cost}" data-warehouse="${p.warehouseId}" ${p.id === item.productId ? 'selected' : ''}>${p.name}</option>`).join('')}
-                </select>
-            </td>
-            <td><input type="number" class="form-control quantity-input" min="1" value="${item.quantity}"></td>
-            <td><input type="number" class="form-control price-input" step="0.01" value="${item.price}" readonly></td>
-            <td class="subtotal-cell">$${(item.quantity * item.price).toFixed(2)}</td>
-            <td class="warehouse-cell">${warehouseName}</td>
-            <td><button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-times"></i></button></td>
-        `;
-        
-        itemsTableBody.appendChild(row);
-        
-        // Configurar event listeners para el item
-        const productSelect = row.querySelector('.product-select');
-        const quantityInput = row.querySelector('.quantity-input');
-        const removeBtn = row.querySelector('.remove-item');
-        
-        productSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const price = selectedOption.getAttribute('data-price') || 0;
-            const warehouseId = selectedOption.getAttribute('data-warehouse');
-            const warehouse = warehouses.find(w => w.id == warehouseId);
-            const warehouseName = warehouse ? warehouse.name : 'Sin asignar';
-            
-            row.querySelector('.price-input').value = price;
-            row.querySelector('.warehouse-cell').textContent = warehouseName;
-            updatePurchaseOrderItemSubtotal(row);
-            updatePurchaseOrderTotals();
-        });
-        
-        quantityInput.addEventListener('input', function() {
-            updatePurchaseOrderItemSubtotal(row);
-            updatePurchaseOrderTotals();
-        });
-        
-        removeBtn.addEventListener('click', function() {
-            row.remove();
-            updatePurchaseOrderTotals();
-        });
-    });
-    
-    updatePurchaseOrderTotals();
-    
-    document.getElementById('purchaseOrderModalTitle').textContent = 'Editar Orden de Compra';
-    
-    const modal = new bootstrap.Modal(document.getElementById('purchaseOrderModal'));
-    modal.show();
-}
+async function saveSalesOrder() {
+  const orderId = document.getElementById('salesOrderId')?.value;
+  const cliente_id = parseInt(document.getElementById('salesOrderClient').value);
+  const fecha = document.getElementById('salesOrderDate')?.value;
+  const estado = document.getElementById('salesOrderStatus')?.value;
+  const notas = document.getElementById('salesOrderNotes')?.value;
 
-function loadPurchaseOrdersTable() {
-    const tableBody = document.getElementById('purchaseOrdersTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
-    // Cargar proveedores en el select de órdenes de compra
-    const purchaseOrderSupplierSelect = document.getElementById('purchaseOrderSupplier');
-    if (purchaseOrderSupplierSelect) {
-        purchaseOrderSupplierSelect.innerHTML = '<option value="">Seleccionar proveedor</option>';
-        suppliers.forEach(supplier => {
-            const option = document.createElement('option');
-            option.value = supplier.id;
-            option.textContent = supplier.name;
-            purchaseOrderSupplierSelect.appendChild(option);
-        });
-    }
-    
-    // Mostrar órdenes de compra
-    if (purchaseOrders.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay órdenes de compra registradas</td></tr>';
+  if (!cliente_id || !fecha) { showAlert('Cliente y fecha obligatorios', 'warning'); return; }
+
+  const items = [];
+  let invalid = false;
+  document.querySelectorAll('#salesOrderItemsTable tbody tr').forEach(row => {
+    const productId = parseInt(row.querySelector('.product-select').value) || null;
+    const cantidad = parseInt(row.querySelector('.quantity-input').value) || 0;
+    const precio_unitario = parseFloat(row.querySelector('.price-input').value) || 0;
+    if (!productId || cantidad <= 0) invalid = true;
+    items.push({ producto_id: productId, cantidad, precio_unitario });
+  });
+
+  if (invalid || items.length === 0) { showAlert('Verifique los items de la orden', 'warning'); return; }
+
+  
+  if (estado === 'Completada') {
+    for (const it of items) {
+      const prod = inventoryProducts.find(p => p.id === it.producto_id);
+      if (!prod || (prod.stock_actual ?? 0) < it.cantidad) {
+        showAlert(`Stock insuficiente para ${prod ? prod.nombre : 'producto ' + it.producto_id}`, 'warning');
         return;
+      }
     }
-    
-    // Ordenar órdenes de compra por fecha (más reciente primero)
-    const sortedPurchaseOrders = [...purchaseOrders].sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    sortedPurchaseOrders.forEach(order => {
-        const supplier = suppliers.find(s => s.id === order.supplierId);
-        const statusClass = getStatusClass(order.status);
-        const invoice = order.invoiceId ? invoices.find(i => i.id === order.invoiceId) : null;
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${order.id}</td>
-            <td>${supplier ? supplier.name : 'Proveedor no encontrado'}</td>
-            <td>${new Date(order.date).toLocaleDateString()}</td>
-            <td>$${order.total.toFixed(2)}</td>
-            <td>
-                <span class="badge bg-${statusClass} status-badge" data-id="${order.id}" data-type="purchaseOrder">
-                    ${order.status}
-                </span>
-            </td>
-            <td>${invoice ? `#${invoice.id}` : 'Pendiente'}</td>
-            <td class="action-buttons">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editPurchaseOrder(${order.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deletePurchaseOrder(${order.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
+  }
 
-function updatePurchaseOrderItemSubtotal(row) {
-    const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
-    const price = parseFloat(row.querySelector('.price-input').value) || 0;
-    const subtotal = quantity * price;
-    
-    row.querySelector('.subtotal-cell').textContent = `$${subtotal.toFixed(2)}`;
-}
+  const payload = { cliente_id, fecha, estado, notas, usuario_id: currentUser?.id || null, items };
 
-function updatePurchaseOrderTotals() {
-    let subtotal = 0;
-    document.querySelectorAll('#purchaseOrderItemsTable tbody tr').forEach(row => {
-        const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        subtotal += quantity * price;
+  try {
+    const url = orderId ? `${API_URL}/ordenes-venta/${orderId}` : `${API_URL}/ordenes-venta`;
+    const method = orderId ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
+      headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
-    
-    const tax = subtotal * 0.16; // IVA del 16%
-    const total = subtotal + tax;
-    
-    document.getElementById('purchaseOrderSubtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('purchaseOrderTax').textContent = `$${tax.toFixed(2)}`;
-    document.getElementById('purchaseOrderTotal').textContent = `$${total.toFixed(2)}`;
-}
-
-function addSalesOrderItem() {
-    const tableBody = document.querySelector('#salesOrderItemsTable tbody');
-    if (!tableBody) return;
-    
-    // Crear fila para nuevo item
-    const row = document.createElement('tr');
-    row.innerHTML = `
-        <td>
-            <select class="form-select product-select">
-                <option value="">Seleccionar producto</option>
-                ${inventoryProducts.map(p => `<option value="${p.id}" data-price="${p.price}" data-warehouse="${p.warehouseId}">${p.name}</option>`).join('')}
-            </select>
-        </td>
-        <td><input type="number" class="form-control quantity-input" min="1" value="1"></td>
-        <td><input type="number" class="form-control price-input" step="0.01" readonly></td>
-        <td class="subtotal-cell">$0.00</td>
-        <td class="warehouse-cell"></td>
-        <td><button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-times"></i></button></td>
-    `;
-    
-    tableBody.appendChild(row);
-    
-    // Configurar event listeners para el nuevo item
-    const productSelect = row.querySelector('.product-select');
-    const quantityInput = row.querySelector('.quantity-input');
-    const priceInput = row.querySelector('.price-input');
-    const removeBtn = row.querySelector('.remove-item');
-    
-    productSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const price = selectedOption.getAttribute('data-price') || 0;
-        const warehouseId = selectedOption.getAttribute('data-warehouse');
-        const warehouse = warehouses.find(w => w.id == warehouseId);
-        const warehouseName = warehouse ? warehouse.name : 'Sin asignar';
-        
-        priceInput.value = price;
-        row.querySelector('.warehouse-cell').textContent = warehouseName;
-        updateSalesOrderItemSubtotal(row);
-        updateSalesOrderTotals();
-    });
-    
-    quantityInput.addEventListener('input', function() {
-        updateSalesOrderItemSubtotal(row);
-        updateSalesOrderTotals();
-    });
-    
-    removeBtn.addEventListener('click', function() {
-        row.remove();
-        updateSalesOrderTotals();
-    });
-}
-
-function saveSalesOrder() {
-    const orderId = document.getElementById('salesOrderId').value;
-    const clientId = parseInt(document.getElementById('salesOrderClient').value);
-    const date = document.getElementById('salesOrderDate').value;
-    const status = document.getElementById('salesOrderStatus').value;
-    const notes = document.getElementById('salesOrderNotes').value;
-    
-    if (!clientId || !date) {
-        showAlert('Por favor, complete todos los campos obligatorios.', 'warning');
-        return;
-    }
-    
-    // Recolectar items de la orden de venta
-    const items = [];
-    let hasError = false;
-    
-    document.querySelectorAll('#salesOrderItemsTable tbody tr').forEach(row => {
-        const productId = parseInt(row.querySelector('.product-select').value);
-        const quantity = parseInt(row.querySelector('.quantity-input').value);
-        const price = parseFloat(row.querySelector('.price-input').value);
-        
-        if (!productId || quantity <= 0) {
-            hasError = true;
-            return;
-        }
-        
-        // Verificar stock disponible
-        const product = inventoryProducts.find(p => p.id === productId);
-        if (!product || product.stock < quantity) {
-            showAlert(`Stock insuficiente para el producto: ${product ? product.name : 'ID ' + productId}`, 'warning');
-            hasError = true;
-            return;
-        }
-        
-        items.push({ productId, quantity, price });
-    });
-    
-    if (hasError) {
-        showAlert('Por favor, verifique los items de la orden de venta.', 'warning');
-        return;
-    }
-    
-    if (items.length === 0) {
-        showAlert('La orden de venta debe tener al menos un producto.', 'warning');
-        return;
-    }
-    
-    // Calcular totales
-    const subtotal = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-    const tax = subtotal * 0.16;
-    const total = subtotal + tax;
-    
-    if (orderId) {
-        // Editar orden existente
-        const index = salesOrders.findIndex(o => o.id == orderId);
-        if (index !== -1) {
-            salesOrders[index] = {
-                ...salesOrders[index],
-                clientId,
-                date,
-                items,
-                subtotal,
-                tax,
-                total,
-                status,
-                notes
-            };
-            
-            // Actualizar Kardex automáticamente si el estado es válido
-            updateKardexAutomatically(salesOrders[index], 'sales');
-            
-            // Actualizar la factura asociada si existe
-            if (salesOrders[index].invoiceId) {
-                const invoiceIndex = invoices.findIndex(i => i.id == salesOrders[index].invoiceId);
-                if (invoiceIndex !== -1) {
-                    invoices[invoiceIndex] = {
-                        ...invoices[invoiceIndex],
-                        items: [...items],
-                        subtotal,
-                        tax,
-                        total,
-                        status
-                    };
-                    localStorage.setItem('invoices', JSON.stringify(invoices));
-                }
-            }
-            
-            showAlert('Orden de venta actualizada correctamente.', 'success');
-        }
-    } else {
-        // Crear nueva orden de venta
-        const newSalesOrder = {
-            id: salesOrders.length > 0 ? Math.max(...salesOrders.map(o => o.id)) + 1 : 1,
-            clientId,
-            date,
-            items,
-            subtotal,
-            tax,
-            total,
-            status: status,
-            notes,
-            invoiceId: null
-        };
-        
-        salesOrders.push(newSalesOrder);
-        
-        // Actualizar Kardex automáticamente si el estado es válido
-        updateKardexAutomatically(newSalesOrder, 'sales');
-        
-        // Generar factura automáticamente
-        const invoice = generateInvoiceFromSalesOrder(newSalesOrder);
-        if (invoice) {
-            newSalesOrder.invoiceId = invoice.id;
-        }
-        
-        showAlert('Orden de venta creada correctamente.', 'success');
-    }
-    
-    localStorage.setItem('salesOrders', JSON.stringify(salesOrders));
-    localStorage.setItem('invoices', JSON.stringify(invoices));
-    
-    // Cerrar modal
+    const data = await res.json();
+    if (!res.ok) { showAlert(data.message || 'Error guardando orden', 'danger'); return; }
+    showAlert(data.message || 'Orden guardada', 'success');
+    await loadInventoryData();
+    await loadSalesOrders();
     const modal = bootstrap.Modal.getInstance(document.getElementById('salesOrderModal'));
     if (modal) modal.hide();
-    
-    // Limpiar formulario
-    document.getElementById('salesOrderForm').reset();
-    document.querySelector('#salesOrderItemsTable tbody').innerHTML = '';
-    updateSalesOrderTotals();
-    
-    // Actualizar tablas
-    loadSalesOrdersTable();
-    loadSalesInvoicesTable();
+  } catch (err) {
+    console.error('saveSalesOrder error', err);
+    showAlert('Error al conectar', 'danger');
+  }
 }
 
-function updateSalesOrderTotals() {
-    let subtotal = 0;
-    document.querySelectorAll('#salesOrderItemsTable tbody tr').forEach(row => {
-        const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
-        const price = parseFloat(row.querySelector('.price-input').value) || 0;
-        subtotal += quantity * price;
-    });
-    
-    const tax = subtotal * 0.16; // IVA del 16%
-    const total = subtotal + tax;
-    
-    document.getElementById('salesOrderSubtotal').textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById('salesOrderTax').textContent = `$${tax.toFixed(2)}`;
-    document.getElementById('salesOrderTotal').textContent = `$${total.toFixed(2)}`;
-}
-
-function updateSalesOrderItemSubtotal(row) {
-    const quantity = parseInt(row.querySelector('.quantity-input').value) || 0;
-    const price = parseFloat(row.querySelector('.price-input').value) || 0;
-    const subtotal = quantity * price;
-    
-    row.querySelector('.subtotal-cell').textContent = `$${subtotal.toFixed(2)}`;
-}
-
-function editSalesOrder(id) {
-    const order = salesOrders.find(o => o.id === id);
-    if (!order) return;
-    
-    document.getElementById('salesOrderId').value = order.id;
-    document.getElementById('salesOrderClient').value = order.clientId;
-    document.getElementById('salesOrderDate').value = order.date;
-    document.getElementById('salesOrderStatus').value = order.status;
-    document.getElementById('salesOrderNotes').value = order.notes || '';
-    
-    // Cargar items de la orden
-    const itemsTableBody = document.querySelector('#salesOrderItemsTable tbody');
-    itemsTableBody.innerHTML = '';
-    
-    order.items.forEach(item => {
-        const product = inventoryProducts.find(p => p.id === item.productId);
-        const warehouse = warehouses.find(w => w.id === product.warehouseId);
-        const warehouseName = warehouse ? warehouse.name : 'Sin asignar';
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>
-                <select class="form-select product-select">
-                    <option value="">Seleccionar producto</option>
-                    ${inventoryProducts.map(p => `<option value="${p.id}" data-price="${p.price}" data-warehouse="${p.warehouseId}" ${p.id === item.productId ? 'selected' : ''}>${p.name}</option>`).join('')}
-                </select>
-            </td>
-            <td><input type="number" class="form-control quantity-input" min="1" value="${item.quantity}"></td>
-            <td><input type="number" class="form-control price-input" step="0.01" value="${item.price}" readonly></td>
-            <td class="subtotal-cell">$${(item.quantity * item.price).toFixed(2)}</td>
-            <td class="warehouse-cell">${warehouseName}</td>
-            <td><button type="button" class="btn btn-sm btn-danger remove-item"><i class="fas fa-times"></i></button></td>
-        `;
-        
-        itemsTableBody.appendChild(row);
-        
-        // Configurar event listeners para el item
-        const productSelect = row.querySelector('.product-select');
-        const quantityInput = row.querySelector('.quantity-input');
-        const removeBtn = row.querySelector('.remove-item');
-        
-        productSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const price = selectedOption.getAttribute('data-price') || 0;
-            const warehouseId = selectedOption.getAttribute('data-warehouse');
-            const warehouse = warehouses.find(w => w.id == warehouseId);
-            const warehouseName = warehouse ? warehouse.name : 'Sin asignar';
-            
-            row.querySelector('.price-input').value = price;
-            row.querySelector('.warehouse-cell').textContent = warehouseName;
-            updateSalesOrderItemSubtotal(row);
-            updateSalesOrderTotals();
-        });
-        
-        quantityInput.addEventListener('input', function() {
-            updateSalesOrderItemSubtotal(row);
-            updateSalesOrderTotals();
-        });
-        
-        removeBtn.addEventListener('click', function() {
-            row.remove();
-            updateSalesOrderTotals();
-        });
-    });
-    
-    updateSalesOrderTotals();
-    
-    document.getElementById('salesOrderModalTitle').textContent = 'Editar Orden de Venta';
-    
-    const modal = new bootstrap.Modal(document.getElementById('salesOrderModal'));
-    modal.show();
-}
-
-function deleteSalesOrder(id) {
-    if (!confirm('¿Está seguro de que desea eliminar esta orden de venta?')) return;
-    
-    const orderIndex = salesOrders.findIndex(o => o.id === id);
-    if (orderIndex === -1) return;
-    
-    // Eliminar la factura asociada si existe
-    const order = salesOrders[orderIndex];
-    if (order.invoiceId) {
-        const invoiceIndex = invoices.findIndex(i => i.id === order.invoiceId);
-        if (invoiceIndex !== -1) {
-            invoices.splice(invoiceIndex, 1);
-        }
+// Loading tables (purchase & sales)
+async function loadPurchaseOrders() {
+  const tbody = document.getElementById('purchaseOrdersTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+  try {
+    const res = await fetch(`${API_URL}/ordenes-compra`, { headers: getAuthHeaders() });
+    if (!res.ok) { tbody.innerHTML = '<tr><td colspan="7">Error al cargar</td></tr>'; return; }
+    purchaseOrders = await res.json();
+    window.purchaseOrders = purchaseOrders;
+    if (purchaseOrders.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay órdenes de compra</td></tr>';
+      return;
     }
-    
-    salesOrders.splice(orderIndex, 1);
-    localStorage.setItem('salesOrders', JSON.stringify(salesOrders));
-    localStorage.setItem('invoices', JSON.stringify(invoices));
-    
-    loadSalesOrdersTable();
-    loadSalesInvoicesTable();
-    updateDashboard();
-    showAlert('Orden de venta eliminada correctamente.', 'success');
+    tbody.innerHTML = '';
+    purchaseOrders.forEach(order => {
+      const proveedor = order.proveedores?.nombre || '—';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${order.id}</td>
+        <td>${proveedor}</td>
+        <td>${formatDate(order.fecha)}</td>
+        <td>${formatMoney(order.total)}</td>
+        <td><span class="badge bg-${getStatusClass(order.estado)}">${order.estado}</span></td>
+        <td>${order.numero_orden || ''}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="editPurchaseOrder(${order.id})"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deletePurchaseOrder(${order.id})"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error('loadPurchaseOrders error', err);
+    tbody.innerHTML = '<tr><td colspan="7">Error al cargar</td></tr>';
+  }
 }
 
-function loadSalesOrdersTable() {
-    const tableBody = document.getElementById('salesOrdersTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
-    // Cargar clientes en el select de órdenes de venta
-    const salesOrderClientSelect = document.getElementById('salesOrderClient');
-    if (salesOrderClientSelect) {
-        salesOrderClientSelect.innerHTML = '<option value="">Seleccionar cliente</option>';
-        customers.forEach(customer => {
-            const option = document.createElement('option');
-            option.value = customer.id;
-            option.textContent = customer.name;
-            salesOrderClientSelect.appendChild(option);
-        });
-    }
-    
-    // Mostrar órdenes de venta
+async function loadSalesOrders() {
+  const tbody = document.getElementById('salesOrdersTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
+  try {
+    const res = await fetch(`${API_URL}/ordenes-venta`, { headers: getAuthHeaders() });
+    if (!res.ok) { tbody.innerHTML = '<tr><td colspan="7">Error al cargar</td></tr>'; return; }
+    salesOrders = await res.json();
+    window.salesOrders = salesOrders;
     if (salesOrders.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay órdenes de venta registradas</td></tr>';
-        return;
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay órdenes de venta</td></tr>';
+      return;
     }
-    
-    // Ordenar órdenes de venta por fecha (más reciente primero)
-    const sortedSalesOrders = [...salesOrders].sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    sortedSalesOrders.forEach(order => {
-        const customer = customers.find(c => c.id === order.clientId);
-        const statusClass = getStatusClass(order.status);
-        const invoice = order.invoiceId ? invoices.find(i => i.id === order.invoiceId) : null;
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${order.id}</td>
-            <td>${customer ? customer.name : 'Cliente no encontrado'}</td>
-            <td>${new Date(order.date).toLocaleDateString()}</td>
-            <td>$${order.total.toFixed(2)}</td>
-            <td>
-                <span class="badge bg-${statusClass} status-badge" data-id="${order.id}" data-type="salesOrder">
-                    ${order.status}
-                </span>
-            </td>
-            <td>${invoice ? `#${invoice.id}` : 'Pendiente'}</td>
-            <td class="action-buttons">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editSalesOrder(${order.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteSalesOrder(${order.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
+    tbody.innerHTML = '';
+    salesOrders.forEach(order => {
+      const cliente = order.clientes?.nombre || '—';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${order.id}</td>
+        <td>${cliente}</td>
+        <td>${formatDate(order.fecha)}</td>
+        <td>${formatMoney(order.total)}</td>
+        <td><span class="badge bg-${getStatusClass(order.estado)}">${order.estado}</span></td>
+        <td>${order.numero_orden || ''}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="editSalesOrder(${order.id})"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteSalesOrder(${order.id})"><i class="fas fa-trash"></i></button>
+        </td>
+      `;
+      tbody.appendChild(tr);
     });
+  } catch (err) {
+    console.error('loadSalesOrders error', err);
+    tbody.innerHTML = '<tr><td colspan="7">Error al cargar</td></tr>';
+  }
 }
+
+// Edit / Delete functions (edits open modal and fill items)
+async function editPurchaseOrder(id) {
+  try {
+    const res = await fetch(`${API_URL}/ordenes-compra/${id}`, { headers: getAuthHeaders() });
+    if (!res.ok) { showAlert('No se pudo cargar orden', 'danger'); return; }
+    const order = await res.json();
+    document.getElementById('purchaseOrderId').value = order.id;
+    document.getElementById('purchaseOrderSupplier').value = order.proveedor_id;
+    document.getElementById('purchaseOrderDate').value = order.fecha;
+    document.getElementById('purchaseOrderStatus').value = order.estado;
+    document.getElementById('purchaseOrderNotes').value = order.notas || '';
+
+    // llenar items
+    const tbody = document.querySelector('#purchaseOrderItemsTable tbody');
+    tbody.innerHTML = '';
+    (order.orden_compra_items || []).forEach(it => {
+      const row = createOrderItemRow(inventoryProducts, warehouses, {
+        producto_id: it.producto_id,
+        cantidad: it.cantidad,
+        precio_unitario: it.precio_unitario,
+        almacen_id: it.almacen_id
+      });
+      tbody.appendChild(row);
+      updateOrderItemSubtotal(row);
+    });
+    updateOrderTotals(document.getElementById('purchaseOrderItemsTable'));
+    document.getElementById('purchaseOrderModalTitle').textContent = 'Editar Orden de Compra';
+    new bootstrap.Modal(document.getElementById('purchaseOrderModal')).show();
+  } catch (err) {
+    console.error('editPurchaseOrder error', err);
+    showAlert('Error al cargar orden', 'danger');
+  }
+}
+
+async function deletePurchaseOrder(id) {
+  if (!confirm('¿Seguro que desea eliminar esta orden de compra?')) return;
+  try {
+    const res = await fetch(`${API_URL}/ordenes-compra/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!res.ok) { showAlert(data.message || 'No se pudo eliminar', 'danger'); return; }
+    showAlert('Orden eliminada', 'success');
+    await loadPurchaseOrders();
+    await loadInventoryData();
+  } catch (err) {
+    console.error('deletePurchaseOrder err', err);
+    showAlert('Error al conectar', 'danger');
+  }
+}
+
+async function editSalesOrder(id) {
+  try {
+    const res = await fetch(`${API_URL}/ordenes-venta/${id}`, { headers: getAuthHeaders() });
+    if (!res.ok) { showAlert('No se pudo cargar orden', 'danger'); return; }
+    const order = await res.json();
+    document.getElementById('salesOrderId').value = order.id;
+    document.getElementById('salesOrderClient').value = order.cliente_id;
+    document.getElementById('salesOrderDate').value = order.fecha;
+    document.getElementById('salesOrderStatus').value = order.estado;
+    document.getElementById('salesOrderNotes').value = order.notas || '';
+
+    const tbody = document.querySelector('#salesOrderItemsTable tbody');
+    tbody.innerHTML = '';
+    (order.orden_venta_items || []).forEach(it => {
+      const row = createOrderItemRow(inventoryProducts, warehouses, {
+        producto_id: it.producto_id,
+        cantidad: it.cantidad,
+        precio_unitario: it.precio_unitario
+      });
+      tbody.appendChild(row);
+      updateOrderItemSubtotal(row);
+    });
+    updateOrderTotals(document.getElementById('salesOrderItemsTable'));
+    document.getElementById('salesOrderModalTitle').textContent = 'Editar Orden de Venta';
+    new bootstrap.Modal(document.getElementById('salesOrderModal')).show();
+  } catch (err) {
+    console.error('editSalesOrder err', err);
+    showAlert('Error al cargar orden', 'danger');
+  }
+}
+
+async function deleteSalesOrder(id) {
+  if (!confirm('¿Seguro que desea eliminar esta orden de venta?')) return;
+  try {
+    const res = await fetch(`${API_URL}/ordenes-venta/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!res.ok) { showAlert(data.message || 'No se pudo eliminar', 'danger'); return; }
+    showAlert('Orden eliminada', 'success');
+    await loadSalesOrders();
+    await loadInventoryData();
+  } catch (err) {
+    console.error('deleteSalesOrder err', err);
+    showAlert('Error al conectar', 'danger');
+  }
+}
+
+
+function addPurchaseOrderItem() {
+  const tbody = document.querySelector('#purchaseOrderItemsTable tbody');
+  tbody.appendChild(createOrderItemRow(inventoryProducts, warehouses));
+  updateOrderTotals(document.getElementById('purchaseOrderItemsTable'));
+}
+function addSalesOrderItem() {
+  const tbody = document.querySelector('#salesOrderItemsTable tbody');
+  tbody.appendChild(createOrderItemRow(inventoryProducts, warehouses));
+  updateOrderTotals(document.getElementById('salesOrderItemsTable'));
+}
+
+// exports
+window.savePurchaseOrder = savePurchaseOrder;
+window.saveSalesOrder = saveSalesOrder;
+window.loadPurchaseOrders = loadPurchaseOrders;
+window.loadSalesOrders = loadSalesOrders;
+window.editPurchaseOrder = editPurchaseOrder;
+window.deletePurchaseOrder = deletePurchaseOrder;
+window.editSalesOrder = editSalesOrder;
+window.deleteSalesOrder = deleteSalesOrder;
+window.addPurchaseOrderItem = addPurchaseOrderItem;
+window.addSalesOrderItem = addSalesOrderItem;

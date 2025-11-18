@@ -339,3 +339,11 @@ function updateSalesAnalysisChart() {
     // Actualizar métricas
     updateSalesMetrics(salesData);
 }
+
+window.updateKPIs = updateKPIs;
+window.updateDashboard = updateDashboard;
+window.updateNotifications = updateNotifications;
+window.updateAlerts = updateAlerts;
+window.updateInventoryTurnoverChart = updateInventoryTurnoverChart;
+window.updateCategoryChart = updateCategoryChart;
+window.updateSalesAnalysisChart = updateSalesAnalysisChart;

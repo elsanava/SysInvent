@@ -4,7 +4,6 @@
 
 // Mostrar alertas flotantes (Bootstrap)
 function showAlert(message, type = 'info') {
-  // Eliminar alertas anteriores (opcional)
   const existingAlert = document.querySelector('.alert.position-fixed');
   if (existingAlert) existingAlert.remove();
 
@@ -21,13 +20,12 @@ function showAlert(message, type = 'info') {
 
   document.body.appendChild(alertDiv);
 
-  // Auto-cerrar después de 5 segundos
   setTimeout(() => {
     if (alertDiv.parentNode) alertDiv.remove();
   }, 5000);
 }
 
-// Mostrar contenido de reportes
+// Mostrar contenido de reportes (usa showSection definida en tu app)
 function showReport(title, htmlContent) {
   const reportTitle = document.getElementById('reportTitle');
   const reportContent = document.getElementById('reportContent');
@@ -35,8 +33,45 @@ function showReport(title, htmlContent) {
   if (reportTitle && reportContent) {
     reportTitle.textContent = title;
     reportContent.innerHTML = htmlContent;
-    showSection('reports'); // cambia la vista a la sección de reportes
+    if (typeof showSection === 'function') showSection('reports');
   } else {
     console.warn('⚠️ No se encontró el contenedor de reportes en el DOM.');
   }
 }
+
+// Obtener clase CSS para badges
+function getStatusClass(status) {
+  switch (status) {
+    case 'Pendiente': return 'warning';
+    case 'Confirmada': return 'info';
+    case 'Recibida': return 'success';
+    case 'Vendida': return 'success';
+    case 'Completada': return 'success';
+    case 'Cancelada': return 'danger';
+    default: return 'secondary';
+  }
+}
+
+// Formatear dinero a córdobas (C$)
+function formatMoney(amount) {
+  return new Intl.NumberFormat('es-NI', {
+    style: 'currency',
+    currency: 'NIO',
+    minimumFractionDigits: 2
+  }).format(Number(amount || 0));
+}
+
+// Formatear fecha
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  const d = new Date(dateString);
+  if (isNaN(d)) return dateString;
+  return d.toLocaleDateString();
+}
+
+// export
+window.showAlert = showAlert;
+window.showReport = showReport;
+window.getStatusClass = getStatusClass;
+window.formatMoney = formatMoney;
+window.formatDate = formatDate;

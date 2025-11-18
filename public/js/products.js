@@ -1,310 +1,138 @@
-// ===============================
-// PRODUCTOS - FRONTEND CRUD
-// ===============================
-
-//  Cargar categorías, unidades y almacenes desde el backend
-async function loadCategoriasUnidadesAlmacen() {
+// productos.js - CRUD productos
+async function loadProducts() {
   try {
-    const [catRes, uniRes, almaRes] = await Promise.all([
-      fetch("/api/categorias"),
-      fetch("/api/unidades"),
-      fetch("/api/almacen"),
-    ]);
-
-    const categorias = await catRes.json();
-    const unidades = await uniRes.json();
-    const almacenes = await almaRes.json();
-
-    const categorySelect = document.getElementById("productCategory");
-    const unitSelect = document.getElementById("productUnit");
-    const warehouseSelect = document.getElementById("productWarehouse");
-
-    // Limpiar selects
-    categorySelect.innerHTML = '<option value="">Seleccionar categoría</option>';
-    unitSelect.innerHTML = '<option value="">Seleccionar unidad</option>';
-    warehouseSelect.innerHTML = '<option value="">Seleccionar almacén</option>';
-
-    // Categorías
-    if (Array.isArray(categorias)) {
-      categorias.forEach((c) => {
-        const opt = document.createElement("option");
-        opt.value = c.id;
-        opt.textContent = c.nombre;
-        categorySelect.appendChild(opt);
-      });
-    }
-
-    // Unidades
-    if (Array.isArray(unidades)) {
-      unidades.forEach((u) => {
-        const opt = document.createElement("option");
-        opt.value = u.id;
-        opt.textContent = u.nombre;
-        unitSelect.appendChild(opt);
-      });
-    }
-
-    // Almacenes
-    if (Array.isArray(almacenes)) {
-      almacenes.forEach((a) => {
-        const opt = document.createElement("option");
-        opt.value = a.id;
-        opt.textContent = a.nombre;
-        warehouseSelect.appendChild(opt);
-      });
-    }
+    const res = await fetch(`${API_URL}/productos`, { headers: getAuthHeaders() });
+    if (!res.ok) throw await res.json();
+    const products = await res.json();
+    renderProductsTable(products);
   } catch (err) {
-    console.error("Error al cargar categorías, unidades o almacén:", err);
-    showAlert("Error al cargar categorías o unidades.", "danger");
+    console.error('loadProducts', err);
+    showAlert('Error cargando productos','danger');
   }
 }
 
-// ===============================
-// GUARDAR / EDITAR PRODUCTO
-// ===============================
+function renderProductsTable(products) {
+  const tbody = document.getElementById('productsTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = products.length === 0 ? '<tr><td colspan="10">No hay productos</td></tr>' :
+    products.map(p => `
+      <tr>
+        <td>${p.id}</td>
+        <td>${p.codigo}</td>
+        <td>${p.nombre}</td>
+        <td>${p.categorias?.nombre || '-'}</td>
+        <td>${p.marcas?.nombre || '-'}</td>
+        <td>${p.stock_actual ?? 0}</td>
+        <td>${formatMoney(p.precio)}</td>
+        <td>${formatMoney(p.costo)}</td>
+        <td><span class="badge bg-${getStatusClass(p.estado)}">${p.estado}</span></td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="editProduct(${p.id})">Editar</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${p.id})">Eliminar</button>
+        </td>
+      </tr>`).join('');
+}
+
 async function saveProduct() {
-  const id = document.getElementById("productId").value;
-  const codigo = document.getElementById("productCode").value.trim();
-  const nombre = document.getElementById("productName").value.trim();
-  const categoria_id = document.getElementById("productCategory").value;
-  const subcategoria = document.getElementById("productSubcategory").value.trim();
-  const precio = parseFloat(document.getElementById("productPrice").value);
-  const costo = parseFloat(document.getElementById("productCost").value);
-  const unidad_id = document.getElementById("productUnit").value;
-  const stock_minimo = parseInt(document.getElementById("productMinStock").value);
-  const stock_maximo = parseInt(document.getElementById("productMaxStock").value);
-  const almacen_id = parseInt(document.getElementById("productWarehouse").value);
-  const descripcion = document.getElementById("productDescription").value.trim();
+  // campos esperados en DOM: productId, productCode, productName, productCategory, productSubcategory,
+  // productDescription, productPrice, productCost, productUnit, productBrand, productStockMin, productStockMax, productWarehouse, productManaged, productState
+  const id = document.getElementById('productId')?.value || '';
+  const codigo = (document.getElementById('productCode')?.value || '').trim();
+  const nombre = (document.getElementById('productName')?.value || '').trim();
+  const categoria_id = parseInt(document.getElementById('productCategory')?.value || 0) || null;
+  const subcategoria = (document.getElementById('productSubcategory')?.value || '').trim();
+  const descripcion = (document.getElementById('productDescription')?.value || '').trim();
+  const precio = parseFloat(document.getElementById('productPrice')?.value || 0);
+  const costo = parseFloat(document.getElementById('productCost')?.value || 0);
+  const unidad_id = parseInt(document.getElementById('productUnit')?.value || 0) || null;
+  const marcas_id = parseInt(document.getElementById('productBrand')?.value || 0) || null;
+  const stock_minimo = parseInt(document.getElementById('productStockMin')?.value || 0) || 0;
+  const stock_maximo = parseInt(document.getElementById('productStockMax')?.value || 0) || 0;
+  const almacen_id = parseInt(document.getElementById('productWarehouse')?.value || 0) || null;
+  const gestionado = !!document.getElementById('productManaged')?.checked;
+  const estado = document.getElementById('productState')?.value || 'Disponible';
 
-  if (!nombre || !categoria_id || !unidad_id || isNaN(precio) || isNaN(costo)) {
-    showAlert("⚠️ Completa todos los campos obligatorios.", "warning");
+  if (!codigo || !nombre || !categoria_id || !unidad_id || !marcas_id || !almacen_id) {
+    showAlert('Completa los campos obligatorios (código,nombre,categoría,unidad,marca,almacén)','warning');
     return;
   }
 
-  if (stock_minimo >= stock_maximo) {
-    showAlert("⚠️ El stock mínimo debe ser menor al máximo.", "warning");
-    return;
-  }
-
-  const producto = {
-    codigo,
-    nombre,
-    categoria_id: parseInt(categoria_id),
-    subcategoria,
-    descripcion,
-    precio,
-    costo,
-    unidad_id: parseInt(unidad_id),
-    stock_minimo,
-    stock_maximo,
-    almacen_id,
+  const payload = {
+    codigo, nombre, categoria_id, subcategoria, descripcion,
+    precio, costo, unidad_id, marcas_id, stock_minimo, stock_maximo,
+    almacen_id, gestionado, estado
   };
 
   try {
     let res;
-
     if (id) {
-      // Editar producto
-      res = await fetch(`/api/productos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(producto),
+      res = await fetch(`${API_URL}/productos/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
       });
     } else {
-      // Crear producto nuevo
-      res = await fetch("/api/productos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(producto),
+      res = await fetch(`${API_URL}/productos`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
       });
     }
-
     const data = await res.json();
-
-    if (res.ok) {
-      showAlert(data.message || "✅ Producto guardado correctamente.", "success");
-
-      // Cerrar modal y actualizar interfaz
-      const modal = bootstrap.Modal.getInstance(document.getElementById("productModal"));
-      if (modal) modal.hide();
-      document.getElementById("productForm").reset();
-
-      if (typeof loadProductsTable === "function") loadProductsTable();
-      if (typeof updateDashboard === "function") updateDashboard();
-    } else {
-      showAlert(data.message || "Error al guardar el producto.", "danger");
-    }
-  } catch (error) {
-    console.error("Error al guardar producto:", error);
-    showAlert("Error al conectar con el servidor.", "danger");
+    if (!res.ok) throw data;
+    showAlert(data.message || 'Producto guardado','success');
+    bootstrap.Modal.getInstance(document.getElementById('productModal'))?.hide();
+    document.getElementById('productForm')?.reset();
+    await loadProducts();
+  } catch (err) {
+    console.error('saveProduct', err);
+    showAlert(err.message || 'Error guardando producto','danger');
   }
 }
 
-// ===============================
-// EDITAR PRODUCTO (CARGAR EN MODAL)
-// ===============================
 async function editProduct(id) {
   try {
-    const res = await fetch(`/api/productos/${id}`);
-    const product = await res.json();
-
-    document.getElementById("productId").value = product.id;
-    document.getElementById("productCode").value = product.codigo;
-    document.getElementById("productName").value = product.nombre;
-    document.getElementById("productCategory").value = product.categoria_id;
-    document.getElementById("productSubcategory").value = product.subcategoria || "";
-    document.getElementById("productPrice").value = product.precio;
-    document.getElementById("productCost").value = product.costo;
-    document.getElementById("productUnit").value = product.unidad_id;
-    document.getElementById("productMinStock").value = product.stock_minimo;
-    document.getElementById("productMaxStock").value = product.stock_maximo;
-    document.getElementById("productWarehouse").value = product.almacen_id;
-    document.getElementById("productDescription").value = product.descripcion || "";
-
-    document.getElementById("productModalTitle").textContent = "Editar Producto";
-    new bootstrap.Modal(document.getElementById("productModal")).show();
-  } catch (error) {
-    console.error("Error al cargar producto:", error);
-    showAlert("Error al cargar producto para editar.", "danger");
+    const res = await fetch(`${API_URL}/productos/${id}`, { headers: getAuthHeaders() });
+    if (!res.ok) throw await res.json();
+    const p = await res.json();
+    document.getElementById('productId').value = p.id;
+    document.getElementById('productCode').value = p.codigo;
+    document.getElementById('productName').value = p.nombre;
+    document.getElementById('productCategory').value = p.categoria_id;
+    document.getElementById('productSubcategory').value = p.subcategoria || '';
+    document.getElementById('productDescription').value = p.descripcion || '';
+    document.getElementById('productPrice').value = p.precio;
+    document.getElementById('productCost').value = p.costo;
+    document.getElementById('productUnit').value = p.unidad_id;
+    document.getElementById('productBrand').value = p.marcas_id;
+    document.getElementById('productStockMin').value = p.stock_minimo;
+    document.getElementById('productStockMax').value = p.stock_maximo;
+    document.getElementById('productWarehouse').value = p.almacen_id;
+    document.getElementById('productManaged').checked = !!p.gestionado;
+    document.getElementById('productState').value = p.estado || 'Disponible';
+    document.getElementById('productModalTitle').textContent = 'Editar Producto';
+    new bootstrap.Modal(document.getElementById('productModal')).show();
+  } catch (err) {
+    console.error('editProduct', err);
+    showAlert('Error cargando producto','danger');
   }
 }
 
-// ===============================
-// ELIMINAR PRODUCTO
-// ===============================
-function deleteProduct(id) {
-    if (!confirm('¿Está seguro de que desea eliminar este producto?')) return;
-    
-    // Verificar si el producto está en uso en facturas
-    const productInUse = invoices.some(invoice => 
-        invoice.items.some(item => item.productId === id)
-    );
-    
-    if (productInUse) {
-        showAlert('No se puede eliminar el producto porque está asociado a facturas.', 'warning');
-        return;
-    }
-    
-    // Eliminar de productos gestionados
-    products = products.filter(p => p.id !== id);
-    
-    // Eliminar de inventario también
-    inventoryProducts = inventoryProducts.filter(p => p.id !== id);
-    
-    // Eliminar movimientos de inventario relacionados
-    inventoryMovements = inventoryMovements.filter(m => m.productId !== id);
-    
-    localStorage.setItem('products', JSON.stringify(products));
-    localStorage.setItem('inventoryProducts', JSON.stringify(inventoryProducts));
-    localStorage.setItem('inventoryMovements', JSON.stringify(inventoryMovements));
-    
-    loadProductsTable();
-    loadInventoryTable();
-    updateDashboard();
-    showAlert('Producto eliminado correctamente.', 'success');
-}
-
-// ===============================
-// CARGAR PRODUCTOS EN LA TABLA
-// ===============================
-async function loadProductsTable() {
+async function deleteProduct(id) {
+  if (!confirm('Eliminar producto?')) return;
   try {
-    const res = await fetch("/api/productos");
-    const productos = await res.json();
-
-    const tbody = document.getElementById("productsTableBody");
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
-
-    // Si no hay productos
-    if (!Array.isArray(productos) || productos.length === 0) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="8" class="text-center text-muted py-3">
-            No hay productos registrados.
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    // Recorrer y mostrar productos
-    productos.forEach((p) => {
-      const tr = document.createElement("tr");
-
-      tr.innerHTML = `
-        <td>${p.codigo}</td>
-        <td>${p.nombre}</td>
-        <td>${p.categorias?.nombre || "—"}</td>
-        <td>$${Number(p.precio).toFixed(2)}</td>
-        <td>${p.stock_actual ?? 0}</td>
-        <td>${p.almacenes?.nombre || "—"}</td>
-        <td>
-          <span class="badge ${p.estado === "Disponible" ? "bg-success" : p.estado === "Stock Bajo" ? "bg-warning" : "bg-danger"}">
-            ${p.estado}
-          </span>
-        </td>
-        <td>
-          <button class="btn btn-sm btn-outline-primary me-1" onclick="editProduct(${p.id})">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${p.id})">
-            <i class="fas fa-trash"></i>
-          </button>
-        </td>
-      `;
-
-      tbody.appendChild(tr);
-    });
-
-  } catch (error) {
-    console.error("Error al cargar productos:", error);
-    showAlert("Error al cargar los productos desde el servidor.", "danger");
+    const res = await fetch(`${API_URL}/productos/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw data;
+    showAlert(data.message || 'Producto eliminado','success');
+    await loadProducts();
+  } catch (err) {
+    console.error('deleteProduct', err);
+    showAlert(err.message || 'Error eliminando producto','danger');
   }
 }
 
-// ===============================
-// GENERAR CÓDIGO DE PRODUCTO AUTOMÁTICO Y LIMPIAR FORMULARIO
-// ===============================
-const productModal = document.getElementById('productModal');
-if (productModal) {
-  productModal.addEventListener('show.bs.modal', async () => {
-    const form = document.getElementById('productForm');
-    const codeInput = document.getElementById('productCode');
-    const subcategoryInput = document.getElementById('productSubcategory');
-
-    // Limpiar formulario
-    if (form) form.reset();
-    document.getElementById('productId').value = '';
-    
-    // Limpiar subcategoría
-    if (subcategoryInput) subcategoryInput.value = '';
-
-    // Resetear selects a opción por defecto
-    ['productCategory', 'productUnit', 'productWarehouse'].forEach(id => {
-      const select = document.getElementById(id);
-      if (select) select.selectedIndex = 0;
-    });
-
-    // Generar código automático
-    try {
-      const res = await fetch('/api/productos/next-code');
-      const data = await res.json();
-      codeInput.value = data.nextCode || '';
-    } catch (err) {
-      console.error('Error al obtener código:', err);
-      codeInput.value = 'Error';
-    }
-
-    // Cargar categorías, unidades y almacén
-    await loadCategoriasUnidadesAlmacen();
-  });
-}
-
-// Exponer las funciones que el HTML u otros archivos llaman
-window.loadCategoriasUnidadesAlmacen = loadCategoriasUnidadesAlmacen;
-window.loadProductsTable = loadProductsTable;
+window.loadProducts = loadProducts;
 window.saveProduct = saveProduct;
 window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;

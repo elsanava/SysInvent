@@ -88,6 +88,61 @@ function showSection(section) {
     showSyncStatus();
 }
 
+function performGlobalSearch() {
+    const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
+    const resultsContainer = document.getElementById('searchResults');
+    
+    if (searchTerm.length < 2) {
+        resultsContainer.style.display = 'none';
+        return;
+    }
+    
+    // Buscar en diferentes categorías
+    const productResults = inventoryProducts.filter(p => 
+        p.name.toLowerCase().includes(searchTerm) || 
+        p.code.toLowerCase().includes(searchTerm) ||
+        p.category.toLowerCase().includes(searchTerm)
+    ).slice(0, 3);
+    
+    const customerResults = customers.filter(c => 
+        c.name.toLowerCase().includes(searchTerm) || 
+        c.email.toLowerCase().includes(searchTerm)
+    ).slice(0, 2);
+    
+    // Mostrar resultados
+    let resultsHTML = '';
+    
+    if (productResults.length > 0) {
+        resultsHTML += '<div class="search-category">Productos</div>';
+        productResults.forEach(product => {
+            resultsHTML += `
+                <div class="search-item" onclick="showSection('inventory')">
+                    <i class="fas fa-box me-2"></i>
+                    ${product.name} (${product.code})
+                </div>
+            `;
+        });
+    }
+    
+    if (customerResults.length > 0) {
+        resultsHTML += '<div class="search-category">Clientes</div>';
+        customerResults.forEach(customer => {
+            resultsHTML += `
+                <div class="search-item" onclick="showSection('customers')">
+                    <i class="fas fa-user me-2"></i>
+                    ${customer.name}
+                </div>
+            `;
+        });
+    }
+    
+    if (resultsHTML === '') {
+        resultsHTML = '<div class="search-item text-muted">No se encontraron resultados</div>';
+    }
+    
+    resultsContainer.innerHTML = resultsHTML;
+    resultsContainer.style.display = 'block';
+}
 
 function setupEventListeners() {
     // Login y registro
@@ -217,5 +272,24 @@ function setupEventListeners() {
         }
     });
 }
+
+function showSyncStatus() {
+    const inconsistencies = verifyDataConsistency();
+    const statusElement = document.getElementById('syncStatus');
+    
+    if (!statusElement) return;
+    
+    if (inconsistencies.length === 0) {
+        statusElement.innerHTML = '<span class="sync-status sync-success"><i class="fas fa-check-circle"></i> Datos sincronizados</span>';
+    } else {
+        statusElement.innerHTML = `<span class="sync-status sync-warning"><i class="fas fa-exclamation-triangle"></i> ${inconsistencies.length} inconsistencias</span>`;
+    }
+}
+
 // Exponer función globalmente
 window.setupEventListeners = setupEventListeners;
+window.showLoginScreen = showLoginScreen;
+window.showAppScreen = showAppScreen;
+window.showSection = showSection;
+window.performGlobalSearch = performGlobalSearch;
+window.showSyncStatus = showSyncStatus;

@@ -1,105 +1,77 @@
 // ===============================
-// AUTENTICACIÓN
+// UTILIDADES GLOBALES
 // ===============================
-async function handleLogin(e) {
-  e.preventDefault();
 
-  const email = document.getElementById('loginEmail').value.trim();
-  const password = document.getElementById('loginPassword').value.trim();
+// Mostrar alertas flotantes (Bootstrap)
+function showAlert(message, type = 'info') {
+  const existingAlert = document.querySelector('.alert.position-fixed');
+  if (existingAlert) existingAlert.remove();
 
-  if (!email || !password) {
-    showAlert('Por favor, complete todos los campos.', 'danger');
-    return;
-  }
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed shadow-lg`;
+  alertDiv.style.top = '20px';
+  alertDiv.style.right = '20px';
+  alertDiv.style.zIndex = '9999';
+  alertDiv.style.minWidth = '320px';
+  alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
 
-  try {
-    const response = await fetch("/api/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+  document.body.appendChild(alertDiv);
 
-    const data = await response.json();
+  setTimeout(() => {
+    if (alertDiv.parentNode) alertDiv.remove();
+  }, 5000);
+}
 
-    if (response.ok) {
-      currentUser = data.user;
-      localStorage.setItem("currentUser", JSON.stringify(currentUser));
+// Mostrar contenido de reportes 
+function showReport(title, htmlContent) {
+  const reportTitle = document.getElementById('reportTitle');
+  const reportContent = document.getElementById('reportContent');
 
-      showAppScreen();
-      // updateDashboard();
-      setTimeout(() => {
-    updateDashboard();
-  }, 500);
-
-      showAlert(`Bienvenido, ${currentUser.nombre}`, "success");
-    } else {
-      showAlert(data.message || "Credenciales incorrectas.", "danger");
-    }
-  } catch (error) {
-    console.error("Error en login:", error);
-    showAlert("Error al conectar con el servidor.", "danger");
+  if (reportTitle && reportContent) {
+    reportTitle.textContent = title;
+    reportContent.innerHTML = htmlContent;
+    if (typeof showSection === 'function') showSection('reports');
+  } else {
+    console.warn('⚠️ No se encontró el contenedor de reportes en el DOM.');
   }
 }
 
-// REGISTRO - conexión con el backend
-// ===============================
-async function handleRegister(e) {
-  e.preventDefault();
-
-  const name = document.getElementById('registerName').value.trim();
-  const email = document.getElementById('registerEmail').value.trim();
-  const password = document.getElementById('registerPassword').value.trim();
-  const confirmPassword = document.getElementById('registerConfirmPassword').value.trim();
-
-  // Validaciones básicas
-  if (!name || !email || !password || !confirmPassword) {
-    showAlert('Por favor, complete todos los campos.', 'danger');
-    return;
-  }
-
-  if (password.length < 6) {
-    showAlert('La contraseña debe tener al menos 6 caracteres.', 'warning');
-    return;
-  }
-
-  if (password !== confirmPassword) {
-    showAlert('Las contraseñas no coinciden.', 'warning');
-    return;
-  }
-
-  try {
-    // Enviar los datos al backend
-    const response = await fetch("/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      showAlert("Usuario registrado exitosamente. Ahora puede iniciar sesión.", "success");
-
-      // 🔄 Cambiar automáticamente a la pestaña de login
-      const loginTab = document.getElementById("login-tab");
-      if (loginTab) loginTab.click();
-
-      // 🧹 Limpiar formulario
-      document.getElementById("registerForm").reset();
-    } else {
-      showAlert(data.message || "Error al registrar el usuario.", "danger");
-    }
-  } catch (error) {
-    console.error("Error en registro:", error);
-    showAlert("Error al conectar con el servidor.", "danger");
+// Obtener clase CSS para badges
+function getStatusClass(status) {
+  switch (status) {
+    case 'Pendiente': return 'warning';
+    case 'Confirmada': return 'info';
+    case 'Recibida': return 'success';
+    case 'Vendida': return 'success';
+    case 'Completada': return 'success';
+    case 'Cancelada': return 'danger';
+    default: return 'secondary';
   }
 }
 
-function handleLogout() {
-  currentUser = null;
-  localStorage.removeItem('currentUser');
-  showLoginScreen();
-  showAlert('Sesión cerrada correctamente.', 'info');
+// Formatear dinero a córdobas (C$)
+function formatMoney(amount) {
+  return new Intl.NumberFormat('es-NI', {
+    style: 'currency',
+    currency: 'NIO',
+    minimumFractionDigits: 2
+  }).format(Number(amount || 0));
 }
 
-window.handleLogin = handleLogin;
+// Formatear fecha
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  const d = new Date(dateString);
+  if (isNaN(d)) return dateString;
+  return d.toLocaleDateString();
+}
+
+// export
+window.showAlert = showAlert;
+window.showReport = showReport;
+window.getStatusClass = getStatusClass;
+window.formatMoney = formatMoney;
+window.formatDate = formatDate;

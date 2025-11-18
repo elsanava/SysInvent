@@ -1,131 +1,98 @@
-// ===============================
-// CLIENTES - GESTIÓN FRONTEND
-// ===============================
-
-let customers = JSON.parse(localStorage.getItem('customers')) || [];
-
-// Guardar o editar cliente
-function saveCustomer() {
-  const customerId = document.getElementById('customerId').value;
-  const name = document.getElementById('customerName').value.trim();
-  const email = document.getElementById('customerEmail').value.trim();
-  const phone = document.getElementById('customerPhone').value.trim();
-  const type = document.getElementById('customerType').value;
-  const address = document.getElementById('customerAddress').value.trim();
-
-  if (!name || !email || !phone || !type) {
-    showAlert('⚠️ Por favor, complete todos los campos obligatorios.', 'warning');
-    return;
+// clientes.js - CRUD clientes
+async function loadCustomers() {
+  try {
+    const res = await fetch(`${API_URL}/clientes`, { headers: getAuthHeaders() });
+    if (!res.ok) throw await res.json();
+    const data = await res.json();
+    renderCustomersTable(data);
+  } catch (err) {
+    console.error('loadCustomers', err);
+    showAlert('Error cargando clientes','danger');
   }
-
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    showAlert('⚠️ Por favor, ingrese un email válido.', 'warning');
-    return;
-  }
-
-  if (customerId) {
-    // Editar cliente existente
-    const index = customers.findIndex(c => c.id == customerId);
-    if (index !== -1) {
-      customers[index] = { ...customers[index], name, email, phone, type, address };
-      showAlert('Cliente actualizado correctamente.', 'success');
-    }
-  } else {
-    // Validar duplicado
-    if (customers.find(c => c.email === email)) {
-      showAlert('⚠️ Ya existe un cliente con este email.', 'warning');
-      return;
-    }
-
-    const newCustomer = {
-      id: customers.length > 0 ? Math.max(...customers.map(c => c.id)) + 1 : 1,
-      name,
-      email,
-      phone,
-      type,
-      address,
-    };
-
-    customers.push(newCustomer);
-    showAlert('Cliente creado correctamente.', 'success');
-  }
-
-  localStorage.setItem('customers', JSON.stringify(customers));
-
-  // Cerrar modal y actualizar tabla
-  const modal = bootstrap.Modal.getInstance(document.getElementById('customerModal'));
-  if (modal) modal.hide();
-
-  loadCustomersTable();
-  document.getElementById('customerForm').reset();
-  document.getElementById('customerId').value = '';
 }
 
-// Cargar tabla de clientes
-function loadCustomersTable() {
-    const tableBody = document.getElementById('customersTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
-    if (customers.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay clientes registrados</td></tr>';
-        return;
-    }
-    
-    customers.forEach(customer => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${customer.id}</td>
-            <td>${customer.name}</td>
-            <td>${customer.email}</td>
-            <td>${customer.phone}</td>
-            <td>${customer.address}</td>
-            <td>${customer.type}</td>
-            <td class="action-buttons">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editCustomer(${customer.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer(${customer.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
+function renderCustomersTable(list) {
+  const tbody = document.getElementById('customersTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = list.length === 0 ? '<tr><td colspan="6">No hay clientes</td></tr>' :
+    list.map(c => `
+      <tr>
+        <td>${c.id}</td>
+        <td>${c.nombre}</td>
+        <td>${c.email}</td>
+        <td>${c.telefono || '-'}</td>
+        <td>${c.tipo}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="editCustomer(${c.id})">Editar</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteCustomer(${c.id})">Eliminar</button>
+        </td>
+      </tr>`).join('');
 }
 
-function editCustomer(id) {
-    const customer = customers.find(c => c.id === id);
-    if (!customer) return;
-    
-    document.getElementById('customerId').value = customer.id;
-    document.getElementById('customerName').value = customer.name;
-    document.getElementById('customerEmail').value = customer.email;
-    document.getElementById('customerPhone').value = customer.phone;
-    document.getElementById('customerType').value = customer.type;
-    document.getElementById('customerAddress').value = customer.address || '';
-    
+async function saveCustomer() {
+  const id = document.getElementById('customerId')?.value || '';
+  const nombre = (document.getElementById('customerName')?.value || '').trim();
+  const email = (document.getElementById('customerEmail')?.value || '').trim();
+  const telefono = (document.getElementById('customerPhone')?.value || '').trim();
+  const tipo = (document.getElementById('customerType')?.value || '').trim();
+  const direccion = (document.getElementById('customerAddress')?.value || '').trim();
+
+  if (!nombre || !email || !tipo) { showAlert('Completa campos obligatorios','warning'); return; }
+  const payload = { nombre, email, telefono, tipo, direccion };
+
+  try {
+    let res;
+    if (id) {
+      res = await fetch(`${API_URL}/clientes/${id}`, { method: 'PUT', headers: getAuthHeaders(), body: JSON.stringify(payload) });
+    } else {
+      res = await fetch(`${API_URL}/clientes`, { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(payload) });
+    }
+    const data = await res.json();
+    if (!res.ok) throw data;
+    showAlert(data.message || 'Cliente guardado','success');
+    bootstrap.Modal.getInstance(document.getElementById('customerModal'))?.hide();
+    document.getElementById('customerForm')?.reset();
+    await loadCustomers();
+  } catch (err) {
+    console.error('saveCustomer', err);
+    showAlert(err.message || 'Error guardando cliente','danger');
+  }
+}
+
+async function editCustomer(id) {
+  try {
+    const res = await fetch(`${API_URL}/clientes/${id}`, { headers: getAuthHeaders() });
+    if (!res.ok) throw await res.json();
+    const c = await res.json();
+    document.getElementById('customerId').value = c.id;
+    document.getElementById('customerName').value = c.nombre;
+    document.getElementById('customerEmail').value = c.email;
+    document.getElementById('customerPhone').value = c.telefono || '';
+    document.getElementById('customerType').value = c.tipo;
+    document.getElementById('customerAddress').value = c.direccion || '';
     document.getElementById('customerModalTitle').textContent = 'Editar Cliente';
-    
-    const modal = new bootstrap.Modal(document.getElementById('customerModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('customerModal')).show();
+  } catch (err) {
+    console.error('editCustomer', err);
+    showAlert('Error cargando cliente','danger');
+  }
 }
 
-function deleteCustomer(id) {
-    if (!confirm('¿Está seguro de que desea eliminar este cliente?')) return;
-    
-    // Verificar si el cliente está en uso en facturas
-    const customerInUse = invoices.some(invoice => invoice.clientId === id);
-    
-    if (customerInUse) {
-        showAlert('No se puede eliminar el cliente porque está asociado a facturas.', 'warning');
-        return;
-    }
-    
-    customers = customers.filter(c => c.id !== id);
-    localStorage.setItem('customers', JSON.stringify(customers));
-    loadCustomersTable();
-    showAlert('Cliente eliminado correctamente.', 'success');
+async function deleteCustomer(id) {
+  if (!confirm('Eliminar cliente?')) return;
+  try {
+    const res = await fetch(`${API_URL}/clientes/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw data;
+    showAlert(data.message || 'Cliente eliminado','success');
+    await loadCustomers();
+  } catch (err) {
+    console.error('deleteCustomer', err);
+    showAlert(err.message || 'Error eliminando cliente','danger');
+  }
 }
+
+window.loadCustomers = loadCustomers;
+window.saveCustomer = saveCustomer;
+window.editCustomer = editCustomer;
+window.deleteCustomer = deleteCustomer;

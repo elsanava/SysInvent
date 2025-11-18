@@ -1359,16 +1359,16 @@ if (productModal) {
     return 'Bajista';
 }*/
 
-function getTrendClass(trend) {
+/*function getTrendClass(trend) {
     switch(trend) {
         case 'Baja': return 'text-success';
         case 'Media': return 'text-warning';
         case 'Alta': return 'text-danger';
         default: return 'text-secondary';
     }
-}
+}*/
 
-function getForecastClass(forecast) {
+/*function getForecastClass(forecast) {
     switch(forecast) {
         case 'Alcista': return 'text-success';
         case 'Moderada': return 'text-info';
@@ -1377,10 +1377,10 @@ function getForecastClass(forecast) {
         case 'Bajista': return 'text-danger';
         default: return 'text-secondary';
     }
-}
+}*/
 
 // Configurar event listeners para el análisis de ventas
-function setupSalesAnalysisListeners() {
+/*function setupSalesAnalysisListeners() {
     // Cambiar tipo de gráfico (cantidad/ingresos)
     document.getElementById('salesChartTypeQuantity').addEventListener('click', function() {
         document.getElementById('salesChartTypeQuantity').classList.add('active');
@@ -1404,9 +1404,9 @@ function setupSalesAnalysisListeners() {
             updateSalesAnalysisChart();
         });
     });
-}
+}*/
 
-function updateNotifications() {
+/*function updateNotifications() {
     const notificationCount = document.getElementById('notificationCount');
     const notificationsList = document.getElementById('notificationsList');
     
@@ -1462,9 +1462,9 @@ function updateNotifications() {
             notificationsList.appendChild(notificationItem);
         }
     }
-}
+}*/
 
-function updateAlerts() {
+/*function updateAlerts() {
     const container = document.getElementById('alertsContainer');
     if (!container) return;
     
@@ -1495,13 +1495,11 @@ function updateAlerts() {
     `;
     
     container.innerHTML = alertsHTML;
-}
-
-
+}*/
 
 
 // Funciones para gestión de productos
-function loadProductsTable() {
+/*function loadProductsTable() {
     const tableBody = document.getElementById('productsTableBody');
     if (!tableBody) return;
     
@@ -1556,9 +1554,9 @@ function loadProductsTable() {
     
     // Mostrar estado de sincronización
     showSyncStatus();
-}
+}*/
 
-function loadWarehousesSelect() {
+/*function loadWarehousesSelect() {
     const warehouseSelect = document.getElementById('productWarehouse');
     if (warehouseSelect) {
         warehouseSelect.innerHTML = '<option value="">Seleccionar almacén</option>';
@@ -1569,11 +1567,10 @@ function loadWarehousesSelect() {
             warehouseSelect.appendChild(option);
     });
     }
-}
+}*/
 
 
-
-function deleteProduct(id) {
+/*function deleteProduct(id) {
     if (!confirm('¿Está seguro de que desea eliminar este producto?')) return;
     
     // Verificar si el producto está en uso en facturas
@@ -1603,9 +1600,9 @@ function deleteProduct(id) {
     loadInventoryTable();
     updateDashboard();
     showAlert('Producto eliminado correctamente.', 'success');
-}
+}*/
 
-function loadInventoryTable() {
+/*function loadInventoryTable() {
     const tableBody = document.getElementById('inventoryTableBody');
     if (!tableBody) return;
     
@@ -1655,9 +1652,9 @@ function loadInventoryTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
-function exportToExcel() {
+/*function exportToExcel() {
     // Crear datos para exportar
     const exportData = inventoryProducts.map(product => {
         const warehouse = warehouses.find(w => w.id === product.warehouseId);
@@ -1680,9 +1677,9 @@ function exportToExcel() {
     XLSX.utils.book_append_sheet(wb, ws, "Inventario");
     XLSX.writeFile(wb, "Inventario_SysInvent.xlsx");
     showAlert('Datos exportados correctamente.', 'success');
-}
+}*/
 
-function importFromExcel(event) {
+/*function importFromExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
     
@@ -1696,9 +1693,9 @@ function importFromExcel(event) {
         processImportedData(jsonData);
     };
     reader.readAsArrayBuffer(file);
-}
+}*/
 
-function processImportedData(data) {
+/*function processImportedData(data) {
     let importedCount = 0;
     let updatedCount = 0;
     
@@ -1748,9 +1745,9 @@ function processImportedData(data) {
     
     // Limpiar input de archivo
     document.getElementById('excelFileInput').value = '';
-}
+}*/
 
-function viewProductDetails(id) {
+/*function viewProductDetails(id) {
     const product = inventoryProducts.find(p => p.id === id);
     if (!product) return;
     
@@ -1797,9 +1794,9 @@ function viewProductDetails(id) {
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
     }
-}
+}*/
 
-function printProduct(id) {
+/*function printProduct(id) {
     const product = inventoryProducts.find(p => p.id === id);
     if (!product) return;
     
@@ -1873,10 +1870,10 @@ function printProduct(id) {
     `);
     printWindow.document.close();
     printWindow.print();
-}
+}*/
 
 // Función para verificar consistencia de datos
-function verifyDataConsistency() {
+/*function verifyDataConsistency() {
     let inconsistencies = [];
     
     // Verificar que todos los productos tengan un stock válido
@@ -1898,10 +1895,10 @@ function verifyDataConsistency() {
     });
     
     return inconsistencies;
-}
+}*/
 
 // Función para corregir inconsistencias
-function fixDataInconsistencies() {
+/*function fixDataInconsistencies() {
     const inconsistencies = verifyDataConsistency();
     
     if (inconsistencies.length === 0) {
@@ -1946,10 +1943,10 @@ function fixDataInconsistencies() {
         loadInventoryTable();
         updateDashboard();
     }
-}
+}*/
 
 // Función para mostrar estado de sincronización
-function showSyncStatus() {
+/*function showSyncStatus() {
     const inconsistencies = verifyDataConsistency();
     const statusElement = document.getElementById('syncStatus');
     
@@ -1960,8 +1957,7 @@ function showSyncStatus() {
     } else {
         statusElement.innerHTML = `<span class="sync-status sync-warning"><i class="fas fa-exclamation-triangle"></i> ${inconsistencies.length} inconsistencias</span>`;
     }
-}
-
+}*/
 
 
 // Funciones para gestión de proveedores
@@ -2090,7 +2086,7 @@ function showSyncStatus() {
 }*/
 
 // Funciones para facturación
-function loadPurchaseInvoicesTable() {
+/*function loadPurchaseInvoicesTable() {
     const tableBody = document.getElementById('purchaseInvoicesTableBody');
     if (!tableBody) return;
     
@@ -2137,9 +2133,9 @@ function loadPurchaseInvoicesTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
-function loadSalesInvoicesTable() {
+/*function loadSalesInvoicesTable() {
     const tableBody = document.getElementById('salesInvoicesTableBody');
     if (!tableBody) return;
     
@@ -2186,10 +2182,10 @@ function loadSalesInvoicesTable() {
         `;
         tableBody.appendChild(row);
     });
-}
+}*/
 
 // Función para obtener la clase CSS según el estado
-function getStatusClass(status) {
+/*function getStatusClass(status) {
     switch(status) {
         case 'Pendiente': return 'warning';
         case 'Confirmada': return 'info';
@@ -2198,7 +2194,7 @@ function getStatusClass(status) {
         case 'Cancelada': return 'danger';
         default: return 'secondary';
     }
-}
+}*/
 
 // Función para generar factura desde orden de compra
 /*function generateInvoiceFromPurchaseOrder(purchaseOrder) {
@@ -2254,7 +2250,7 @@ function getStatusClass(status) {
     return newInvoice;
 }*/
 
-function viewInvoiceDetails(id) {
+/*function viewInvoiceDetails(id) {
     const invoice = invoices.find(i => i.id === id);
     if (!invoice) return;
     
@@ -2348,9 +2344,9 @@ function viewInvoiceDetails(id) {
         const modal = new bootstrap.Modal(document.getElementById('productModal'));
         modal.show();
     }
-}
+}*/
 
-function updateInvoiceStatus(invoiceId, newStatus) {
+/*function updateInvoiceStatus(invoiceId, newStatus) {
     const invoice = invoices.find(i => i.id === invoiceId);
     if (!invoice) return;
     
@@ -2391,9 +2387,9 @@ function updateInvoiceStatus(invoiceId, newStatus) {
     loadSalesOrdersTable();
     
     showAlert(`Estado de la factura actualizado a: ${newStatus}`, 'success');
-}
+}*/
 
-function printInvoice(id) {
+/*function printInvoice(id) {
     const invoice = invoices.find(i => i.id === id);
     if (!invoice) return;
     
@@ -2487,7 +2483,7 @@ function printInvoice(id) {
     `);
     printWindow.document.close();
     printWindow.print();
-}
+}*/
 
 /*function printSection(tableId, title) {
     const table = document.getElementById(tableId);
@@ -3733,7 +3729,7 @@ function printInvoice(id) {
     `);
 }*/
 
-function getTopSuppliersList() {
+/*function getTopSuppliersList() {
     const supplierPurchases = {};
     
     invoices.filter(invoice => invoice.orderType === "purchase").forEach(invoice => {
@@ -3761,7 +3757,7 @@ function getTopSuppliersList() {
     return topSuppliers.map(supplier => 
         `<li>${supplier.name} - $${supplier.amount.toLocaleString()}</li>`
     ).join('');
-}
+}*/
 
 /*function generateInventoryReport() {
     const lowStockProducts = inventoryProducts.filter(p => p.stock <= p.minStock && p.stock > 0);
@@ -3877,9 +3873,9 @@ function getTopSuppliersList() {
     
     // Scroll hacia el informe
     document.getElementById('reportResults').scrollIntoView({ behavior: 'smooth' });
-}
+}*/
 
-function printReport() {
+/*function printReport() {
     const reportTitle = document.getElementById('reportTitle').textContent;
     const reportContent = document.getElementById('reportContent').innerHTML;
     
@@ -3916,7 +3912,7 @@ function printReport() {
 }*/
 
 // Búsqueda global
-function performGlobalSearch() {
+/*function performGlobalSearch() {
     const searchTerm = document.getElementById('globalSearch').value.toLowerCase();
     const resultsContainer = document.getElementById('searchResults');
     
@@ -3970,14 +3966,13 @@ function performGlobalSearch() {
     
     resultsContainer.innerHTML = resultsHTML;
     resultsContainer.style.display = 'block';
-}
-
+}*/
 
 
 // ===============================
 // Mostrar la pantalla de login
 // ===============================
-function showLoginScreen() {
+/*function showLoginScreen() {
   const loginScreen = document.getElementById('loginScreen');
   const appScreen = document.getElementById('appScreen');
 
@@ -3991,7 +3986,7 @@ function showLoginScreen() {
   const registerForm = document.getElementById('registerForm');
   if (loginForm) loginForm.reset();
   if (registerForm) registerForm.reset();
-}
+}*/
 
 // Inicializar gráficos al cargar la página
 /*document.addEventListener('DOMContentLoaded', function() {

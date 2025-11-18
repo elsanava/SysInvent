@@ -1,144 +1,113 @@
-function saveUser() {
-    const userId = document.getElementById('userId').value;
-    const name = document.getElementById('userName').value;
-    const email = document.getElementById('userEmail').value;
-    const password = document.getElementById('userPassword').value;
-    const role = document.getElementById('userRole').value;
-    const status = document.getElementById('userStatus').value;
-    
-    // Validaciones
-    if (!name || !email || !role || !status) {
-        showAlert('Por favor, complete todos los campos obligatorios.', 'warning');
-        return;
-    }
-    
-    // Validar email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        showAlert('Por favor, ingrese un email válido.', 'warning');
-        return;
-    }
-    
-    if (userId) {
-        // Editar usuario existente
-        const index = users.findIndex(u => u.id == userId);
-        if (index !== -1) {
-            const updatedUser = {
-                ...users[index],
-                name, email, role, status
-            };
-            
-            // Actualizar contraseña solo si se proporcionó una nueva
-            if (password) {
-                updatedUser.password = password;
-            }
-            
-            users[index] = updatedUser;
-            showAlert('Usuario actualizado correctamente.', 'success');
-        }
+async function loadUsers() {
+  try {
+    const res = await fetch(`${API_URL}/usuarios`, { headers: getAuthHeaders() });
+    if (!res.ok) throw await res.json();
+    const list = await res.json();
+    renderUsersTable(list);
+  } catch (err) {
+    console.error('loadUsers', err);
+    showAlert('Error cargando usuarios','danger');
+  }
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('usersTableBody');
+  if (!tbody) return;
+  tbody.innerHTML = users.length === 0 ? '<tr><td colspan="7">No hay usuarios</td></tr>' :
+    users.map(u => `
+      <tr>
+        <td>${u.id}</td>
+        <td>${u.nombre}</td>
+        <td>${u.email}</td>
+        <td>${u.rol}</td>
+        <td><span class="badge bg-${getStatusClass(u.estado)}">${u.estado}</span></td>
+        <td>${u.creado_en ? new Date(u.creado_en).toLocaleString() : '-'}</td>
+        <td>
+          <button class="btn btn-sm btn-outline-primary" onclick="editUserFrontend(${u.id})">Editar</button>
+          <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${u.id})">Eliminar</button>
+        </td>
+      </tr>`).join('');
+}
+
+async function saveUser() {
+  // lee campos con ids: userId,userName,userEmail,userPassword,userRole,userStatus
+  const id = document.getElementById('userId')?.value || '';
+  const nombre = (document.getElementById('userName')?.value || '').trim();
+  const email = (document.getElementById('userEmail')?.value || '').trim();
+  const password = (document.getElementById('userPassword')?.value || '').trim();
+  const rol = (document.getElementById('userRole')?.value || 'Usuario');
+  const estado = (document.getElementById('userStatus')?.value || 'Activo');
+
+  if (!nombre || !email || !rol) { showAlert('Completa los campos obligatorios','warning'); return; }
+
+  const payload = { nombre, email, rol, estado };
+  if (password) payload.password = password;
+
+  try {
+    let res;
+    if (id) {
+      res = await fetch(`${API_URL}/usuarios/${id}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
     } else {
-        // Verificar si el email ya existe
-        if (users.find(u => u.email === email)) {
-            showAlert('Ya existe un usuario con este email.', 'warning');
-            return;
-        }
-        
-        if (!password) {
-            showAlert('La contraseña es obligatoria para nuevos usuarios.', 'warning');
-            return;
-        }
-        
-        // Crear nuevo usuario
-        const newUser = {
-            id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
-            name,
-            email,
-            password,
-            role,
-            status,
-            lastAccess: new Date().toISOString()
-        };
-        users.push(newUser);
-        showAlert('Usuario creado correctamente.', 'success');
+      if (!password) { showAlert('Contraseña obligatoria para nuevo usuario','warning'); return; }
+      payload.password = password;
+      res = await fetch(`${API_URL}/usuarios`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
     }
-    
-    localStorage.setItem('users', JSON.stringify(users));
-    
-    // Cerrar modal y actualizar tabla
-    const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
-    if (modal) modal.hide();
-    
-    loadUsersTable();
-    
-    // Limpiar formulario
-    document.getElementById('userForm').reset();
-    document.getElementById('userId').value = '';
+    const data = await res.json();
+    if (!res.ok) throw data;
+    showAlert(data.message || 'Operación exitosa','success');
+    // cerrar modal
+    bootstrap.Modal.getInstance(document.getElementById('userModal'))?.hide();
+    document.getElementById('userForm')?.reset();
+    await loadUsers();
+  } catch (err) {
+    console.error('saveUser', err);
+    showAlert(err.message || 'Error guardando usuario','danger');
+  }
 }
 
-function editUser(id) {
-    const user = users.find(u => u.id === id);
-    if (!user) return;
-    
-    document.getElementById('userId').value = user.id;
-    document.getElementById('userName').value = user.name;
-    document.getElementById('userEmail').value = user.email;
-    document.getElementById('userRole').value = user.role;
-    document.getElementById('userStatus').value = user.status;
-    
-    // No mostrar la contraseña por seguridad
+async function editUserFrontend(id) {
+  try {
+    const res = await fetch(`${API_URL}/usuarios/${id}`, { headers: getAuthHeaders() });
+    if (!res.ok) throw await res.json();
+    const u = await res.json();
+    document.getElementById('userId').value = u.id;
+    document.getElementById('userName').value = u.nombre;
+    document.getElementById('userEmail').value = u.email;
+    document.getElementById('userRole').value = u.rol;
+    document.getElementById('userStatus').value = u.estado;
     document.getElementById('userPassword').value = '';
-    
     document.getElementById('userModalTitle').textContent = 'Editar Usuario';
-    
-    const modal = new bootstrap.Modal(document.getElementById('userModal'));
-    modal.show();
+    new bootstrap.Modal(document.getElementById('userModal')).show();
+  } catch (err) {
+    console.error('editUserFrontend', err);
+    showAlert('Error cargando usuario','danger');
+  }
 }
 
-function deleteUser(id) {
-    if (id === currentUser.id) {
-        showAlert('No puede eliminar su propio usuario.', 'warning');
-        return;
-    }
-    
-    if (!confirm('¿Está seguro de que desea eliminar este usuario?')) return;
-    
-    users = users.filter(u => u.id !== id);
-    localStorage.setItem('users', JSON.stringify(users));
-    loadUsersTable();
-    showAlert('Usuario eliminado correctamente.', 'success');
+async function deleteUser(id) {
+  if (!confirm('Eliminar usuario?')) return;
+  if (window.currentUser?.id === id) { showAlert('No puede eliminar su propio usuario','warning'); return; }
+  try {
+    const res = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw data;
+    showAlert(data.message || 'Usuario eliminado','success');
+    await loadUsers();
+  } catch (err) {
+    console.error('deleteUser', err);
+    showAlert(err.message || 'Error eliminando usuario','danger');
+  }
 }
 
-function loadUsersTable() {
-    const tableBody = document.getElementById('usersTableBody');
-    if (!tableBody) return;
-    
-    tableBody.innerHTML = '';
-    
-    if (users.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No hay usuarios registrados</td></tr>';
-        return;
-    }
-    
-    users.forEach(user => {
-        const row = document.createElement('tr');
-        const statusClass = user.status === 'Activo' ? 'success' : 'secondary';
-        
-        row.innerHTML = `
-            <td>${user.id}</td>
-            <td>${user.name}</td>
-            <td>${user.email}</td>
-            <td>${user.role}</td>
-            <td><span class="badge bg-${statusClass}">${user.status}</span></td>
-            <td>${new Date(user.lastAccess).toLocaleDateString()}</td>
-            <td class="action-buttons">
-                <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${user.id})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
+window.loadUsers = loadUsers;
+window.saveUser = saveUser;
+window.editUserFrontend = editUserFrontend;
+window.deleteUser = deleteUser;
